@@ -129,33 +129,33 @@ function dibujarPantallaAdvertencia() {
     if (alphaAdvertencia <= 50) aumentandoAdvertencia = true;
   }
   
-  // Dibujar el título con efecto de parpadeo
+  // Dibujar el título con efecto de parpadeo - AJUSTADO MÁS ABAJO
   textSize(80);
   textStyle(BOLD);
   fill(0, alphaAdvertencia);
-  text("ADVERTENCIA", centroX, 150);
+  text("ADVERTENCIA", centroX, 200); // Ajustado de 150 a 200
   
-  // Dibujar el texto principal
+  // Dibujar el texto principal - TODOS AJUSTADOS MÁS ABAJO
   textSize(32);
   textStyle(NORMAL);
   fill(0);
   
-  // Primer párrafo
-  text("La siguiente será una experiencia que necesita el uso de", centroX, 250);
-  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 300);
-  text("una interacción totalmente inmersiva.", centroX, 350);
+  // Primer párrafo - AJUSTADO
+  text("La siguiente será una experiencia que necesita el uso de", centroX, 320); // Ajustado de 250 a 320
+  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370); // Ajustado de 300 a 370 
+  text("una interacción totalmente inmersiva.", centroX, 420); // Ajustado de 350 a 420
   
   // Espacio entre párrafos
   
-  // Segundo párrafo
-  text("Recuerda: Las palabras son el reflejo de tus", centroX, 450);
-  text("pensamientos. Úsalas con precaución.", centroX, 500);
+  // Segundo párrafo - AJUSTADO
+  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500); // Ajustado de 450 a 500
+  text("pensamientos. Úsalas con precaución.", centroX, 550); // Ajustado de 500 a 550
   
-  // Dibujar el botón (modo CORNER para precisión)
+  // Dibujar el botón (modo CORNER para precisión) - AJUSTADO MÁS CERCA DEL TEXTO
   rectMode(CORNER);
   
   let botonX = centroX - 100;
-  let botonY = 650;
+  let botonY = 620; // Ajustado de 650 a 620 para estar más cerca del último párrafo
   let botonAncho = 200;
   let botonAlto = 60;
   
