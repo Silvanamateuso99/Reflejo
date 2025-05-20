@@ -6,7 +6,7 @@ let aumentando = true;
 let sombraOffsetX = 6, sombraOffsetY = -12;
 let centroX, centroY;
 
-// Estado actual de la aplicación
+// Estado actual de la aplicación - Aseguramos que comience en "INICIO"
 let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
 
 // Variables para la pantalla de advertencia
@@ -37,6 +37,10 @@ function setup() {
   // Configuración de texto
   textAlign(CENTER, CENTER);
   
+  // Forzar estado inicial a "INICIO"
+  estadoActual = "INICIO";
+  console.log("Iniciando en pantalla INICIO (REFLEJO)");
+  
   // Intentar reproducir música (probablemente requiera interacción del usuario)
   if (musicaFondo && !musicaIniciada) {
     // El navegador probablemente bloqueará esto hasta que el usuario interactúe
@@ -51,7 +55,11 @@ function draw() {
   } else if (estadoActual === "ADVERTENCIA") {
     dibujarPantallaAdvertencia();
   }
-  // Aquí añadiríamos más estados con el tiempo
+  
+  // Debug en consola (solo la primera vez)
+  if (frameCount === 1) {
+    console.log("Estado actual: " + estadoActual);
+  }
 }
 
 function dibujarPantallaInicio() {
