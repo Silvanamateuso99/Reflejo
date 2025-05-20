@@ -252,12 +252,24 @@ function dibujarPantallaCarga() {
 function dibujarPantallaPregunta() {
   background(240);
   
-  // Texto de la pregunta en la parte superior - AJUSTADO MÁS ABAJO
+  // Cálculo de posiciones basadas en la imagen
+  let altoImagen = 400;
+  let anchoImagen = 600;
+  
+  // Posición Y superior de la imagen (considerando que la imagen está centrada)
+  let imagenYSuperior = centroY - altoImagen/2;
+  // Posición Y inferior de la imagen
+  let imagenYInferior = centroY + altoImagen/2;
+  
+  // Colocar la pregunta justo por encima de la imagen - REAJUSTADO
+  let preguntaY = imagenYSuperior - 40; // 40px por encima de la imagen
+  
+  // Texto de la pregunta en la parte superior
   textAlign(CENTER, CENTER);
   textSize(30);
   textStyle(BOLD);
   fill(0);
-  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 1); // Ajustado a 0.2
+  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, preguntaY);
   
   // Verificar si hay imágenes cargadas
   if (indiceFotoActual < imagenes.length) {
@@ -265,7 +277,7 @@ function dibujarPantallaPregunta() {
     if (img && img.width > 0) { // Verificar que la imagen se cargó correctamente
       // Mostrar imagen centrada
       imageMode(CENTER);
-      image(img, centroX, centroY, 600, 400);
+      image(img, centroX, centroY, anchoImagen, altoImagen);
     } else {
       // Mostrar mensaje si la imagen no se cargó
       fill(100);
@@ -274,9 +286,12 @@ function dibujarPantallaPregunta() {
     }
   }
   
-  // Área de respuesta/botón continuar - AJUSTADO HACIA ARRIBA
+  // Colocar el campo de respuesta justo debajo de la imagen - REAJUSTADO
+  let respuestaY = imagenYInferior + 40; // 40px debajo de la imagen
+  
+  // Área de respuesta/botón continuar
   let botonX = centroX - 200;
-  let botonY = height * 1; // Ajustado a 0.8
+  let botonY = respuestaY;
   let botonAncho = 400;
   let botonAlto = 50;
   
@@ -359,9 +374,14 @@ function mousePressed() {
     }
   }
   else if (estadoActual === "PREGUNTA" && !cargando) {
+    // Calcular la posición del botón/campo de respuesta
+    let altoImagen = 400;
+    let imagenYInferior = centroY + altoImagen/2;
+    let respuestaY = imagenYInferior + 40;
+    
     // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
-    let botonY = height * 0.8; // Actualizado para coincidir con dibujarPantallaPregunta
+    let botonY = respuestaY;
     let botonAncho = 400;
     let botonAlto = 50;
     
