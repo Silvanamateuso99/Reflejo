@@ -252,12 +252,12 @@ function dibujarPantallaCarga() {
 function dibujarPantallaPregunta() {
   background(240);
   
-  // Texto de la pregunta en la parte superior - AJUSTADO
+  // Texto de la pregunta en la parte superior - AJUSTADO MÁS ABAJO
   textAlign(CENTER, CENTER);
   textSize(30);
   textStyle(BOLD);
   fill(0);
-  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 0.15);
+  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 0.2); // Ajustado a 0.2
   
   // Verificar si hay imágenes cargadas
   if (indiceFotoActual < imagenes.length) {
@@ -276,7 +276,7 @@ function dibujarPantallaPregunta() {
   
   // Área de respuesta/botón continuar - AJUSTADO HACIA ARRIBA
   let botonX = centroX - 200;
-  let botonY = height * 0.85; // Subido un poco
+  let botonY = height * 0.8; // Ajustado a 0.8
   let botonAncho = 400;
   let botonAlto = 50;
   
@@ -361,7 +361,7 @@ function mousePressed() {
   else if (estadoActual === "PREGUNTA" && !cargando) {
     // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
-    let botonY = height * 0.85;
+    let botonY = height * 0.8; // Actualizado para coincidir con dibujarPantallaPregunta
     let botonAncho = 400;
     let botonAlto = 50;
     
