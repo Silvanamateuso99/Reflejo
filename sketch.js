@@ -1,12 +1,10 @@
 // Variables globales
-let musicaFondo;
-let musicaIniciada = false;
 let alpha = 0;
 let aumentando = true;
 let sombraOffsetX = 6, sombraOffsetY = -12;
 let centroX, centroY;
 
-// Estado actual de la aplicación - Comenzar con una pantalla de bienvenida
+// Estado actual de la aplicación
 let estadoActual = "BIENVENIDA"; // BIENVENIDA, INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
 
 // Variables para la pantalla de advertencia
@@ -14,20 +12,55 @@ let alphaAdvertencia = 0;
 let aumentandoAdvertencia = true;
 let sobreBoton = false;
 
-// Precargar recursos
-function preload() {
-  // Intentar cargar el audio (requiere interacción del usuario en muchos navegadores)
-  soundFormats('mp3');
-  try {
-    musicaFondo = loadSound('goldenratio.mp3');
-    console.log('Audio precargado correctamente');
-  } catch (e) {
-    console.log('Error al cargar audio: ' + e.message);
+// Variables para audio
+let audioContext;
+let audioBuffer;
+let audioSource;
+let musicaIniciada = false;
+
+// Cargar audio usando Fetch API y Web Audio API
+function cargarAudio() {
+  // Crear contexto de audio si aún no existe
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  
+  // Obtener el archivo de audio usando fetch
+  fetch('goldenratio.mp3')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el audio');
+      }
+      return response.arrayBuffer();
+    })
+    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+    .then(buffer => {
+      audioBuffer = buffer;
+      console.log('✅ Audio cargado correctamente');
+    })
+    .catch(error => {
+      console.error('❌ Error al cargar audio:', error);
+    });
+}
+
+// Reproducir audio
+function reproducirAudio() {
+  if (audioContext && audioBuffer && !musicaIniciada) {
+    // Crear fuente de audio
+    audioSource = audioContext.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.loop = true;
+    audioSource.connect(audioContext.destination);
+    
+    // Iniciar reproducción
+    audioSource.start(0);
+    musicaIniciada = true;
+    console.log('🎵 Música iniciada correctamente');
   }
 }
 
 function setup() {
-  // Crear lienzo de 1200x800 como en tu versión original
+  // Crear lienzo
   createCanvas(1200, 800);
   
   // Definir el centro de la pantalla
@@ -36,6 +69,9 @@ function setup() {
   
   // Configuración de texto
   textAlign(CENTER, CENTER);
+  
+  // Cargar audio al inicio
+  cargarAudio();
   
   // Iniciar en pantalla de bienvenida
   estadoActual = "BIENVENIDA";
@@ -50,11 +86,6 @@ function draw() {
     dibujarPantallaInicio();
   } else if (estadoActual === "ADVERTENCIA") {
     dibujarPantallaAdvertencia();
-  }
-  
-  // Debug en consola (solo la primera vez)
-  if (frameCount === 1) {
-    console.log("Estado actual: " + estadoActual);
   }
 }
 
@@ -175,29 +206,21 @@ function dibujarPantallaAdvertencia() {
   text("Bienvenido", botonX + botonAncho / 2, botonY + botonAlto / 2);
 }
 
-// Manejar clic del mouse para transiciones entre pantallas
 function mousePressed() {
   if (estadoActual === "BIENVENIDA") {
-    // Intentar iniciar el audio con la interacción del usuario
-    if (getAudioContext().state !== 'running') {
-      getAudioContext().resume().then(() => {
-        console.log("AudioContext reanudado después de interacción");
-      });
+    // Iniciar contexto de audio y reproducir música
+    if (audioContext && audioContext.state !== 'running') {
+      audioContext.resume()
+        .then(() => {
+          console.log('AudioContext reanudado');
+          reproducirAudio(); 
+        })
+        .catch(error => console.error('Error al reanudar AudioContext:', error));
+    } else {
+      reproducirAudio();
     }
     
-    // Intentar reproducir música
-    if (musicaFondo && !musicaIniciada) {
-      try {
-        musicaFondo.play();
-        musicaFondo.loop();
-        musicaIniciada = true;
-        console.log("🎵 Música iniciada con interacción del usuario");
-      } catch (e) {
-        console.error("Error al iniciar música:", e);
-      }
-    }
-    
-    // Transición a la pantalla INICIO
+    // Transición a la primera pantalla
     estadoActual = "INICIO";
     console.log("Cambiando a pantalla INICIO (REFLEJO)");
   }
@@ -209,29 +232,11 @@ function mousePressed() {
   else if (estadoActual === "ADVERTENCIA" && sobreBoton) {
     // En una versión completa, aquí iría la transición a la siguiente pantalla
     console.log("Botón BIENVENIDO presionado");
-    // Podríamos implementar más pantallas gradualmente
   }
 }
 
-// Función adicional para garantizar que el audio pueda reproducirse en dispositivos móviles
 function touchStarted() {
-  if (estadoActual === "BIENVENIDA") {
-    // Reanudar contexto de audio tras interacción táctil
-    if (getAudioContext().state !== 'running') {
-      getAudioContext().resume();
-      console.log("AudioContext reanudado después de interacción táctil");
-    }
-    
-    if (musicaFondo && !musicaIniciada) {
-      try {
-        musicaFondo.play();
-        musicaFondo.loop();
-        musicaIniciada = true;
-        console.log("🎵 Música iniciada con interacción táctil");
-      } catch (e) {
-        console.error("Error al iniciar música (táctil):", e);
-      }
-    }
-  }
+  // Asegurar que el audio funcione en dispositivos móviles también
+  mousePressed();
   return false; // Prevenir acciones por defecto del navegador
 }
