@@ -123,24 +123,28 @@ function dibujarPantallaAdvertencia() {
     if (alphaAdvertencia <= 50) aumentandoAdvertencia = true;
   }
   
+  // Asegurar que el texto esté centrado
+  textAlign(CENTER, CENTER);
+  
   // Mostrar título con efecto de desvanecimiento
   textSize(80);
   textStyle(BOLD);
   fill(0, alphaAdvertencia);
-  text("ADVERTENCIA", width / 2, height / 4);
+  text("ADVERTENCIA", centroX, height * 0.2); // Ajuste de posición del título
   
   // Texto principal
   textSize(32);
   textStyle(NORMAL);
-  
-  // Texto principal alineado
   fill(0);
-  textAlign(CENTER, TOP);
-  text("La siguiente será una experiencia que necesita el uso de todos tus sentidos. Por favor, evita distracciones para vivir una interacción totalmente inmersiva.\n\nRecuerda: Las palabras son el reflejo de tus pensamientos. Úsalas con precaución.", 
-       width * 0.15, height / 2.5, width * 0.7, height / 3);
+  
+  // Texto principal alineado y ajustado en posición
+  let textoExplicativo = "La siguiente será una experiencia que necesita el uso de todos tus sentidos. Por favor, evita distracciones para vivir una interacción totalmente inmersiva.\n\nRecuerda: Las palabras son el reflejo de tus pensamientos. Úsalas con precaución.";
+  
+  // Dibujar el texto con posición ajustada
+  text(textoExplicativo, centroX, height * 0.45, width * 0.8, height * 0.3);
   
   // Crear botón "Bienvenido"
-  let botonX = width / 2 - 100;
+  let botonX = centroX - 100; // Usar centroX para centrar mejor
   let botonY = height * 0.8;
   let botonAncho = 200;
   let botonAlto = 60;
@@ -148,6 +152,9 @@ function dibujarPantallaAdvertencia() {
   // Detectar si el mouse está sobre el botón
   sobreBoton = mouseX > botonX && mouseX < botonX + botonAncho && 
                mouseY > botonY && mouseY < botonY + botonAlto;
+  
+  // Restablecer el modo de rectángulo
+  rectMode(CORNER);
   
   // Dibujar botón con efecto de aclarado al pasar el mouse
   if (sobreBoton) {
@@ -163,31 +170,4 @@ function dibujarPantallaAdvertencia() {
   textAlign(CENTER, CENTER);
   fill(255);
   text("Bienvenido", botonX + botonAncho / 2, botonY + botonAlto / 2);
-}
-
-function mousePressed() {
-  // Activar audio con el clic
-  if (!musicaIniciada) {
-    if (audioContext && audioContext.state !== 'running') {
-      audioContext.resume().then(() => reproducirAudio());
-    } else {
-      reproducirAudio();
-    }
-    return; // No cambiar de pantalla en el primer clic, solo activar audio
-  }
-  
-  // Si ya está reproduciendo música, manejar transiciones de pantallas
-  if (estadoActual === "INICIO") {
-    estadoActual = "ADVERTENCIA";
-    console.log("Cambiando a pantalla ADVERTENCIA");
-  } 
-  else if (estadoActual === "ADVERTENCIA" && sobreBoton) {
-    console.log("Botón BIENVENIDO presionado");
-    // Aquí añadiríamos la transición a la siguiente pantalla en futuras versiones
-  }
-}
-
-function touchStarted() {
-  mousePressed();
-  return false;
 }
