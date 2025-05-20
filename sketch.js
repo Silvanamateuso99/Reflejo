@@ -16,17 +16,15 @@ let audioSource;
 let musicaIniciada = false;
 
 // Estado actual de la aplicación
-let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA
+let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
 
 // Variables para pantalla de preguntas
 let imagenes = [];
 let indiceFotoActual = 0;
-let palabrasUsuario = [];
+let palabrasUsuario = new Array(12).fill(""); // Array para 12 respuestas
 let inputActivo = false;
 let inputValor = "";
-let mensajeError = "";
-let mostrarError = false;
-let tiempoError = 0;
+let todoPreguntado = false;
 
 // Cargar audio e imágenes
 function preload() {
@@ -98,11 +96,6 @@ function draw() {
   } else if (estadoActual === "PREGUNTA") {
     dibujarPantallaPregunta();
   }
-  
-  // Manejar temporizador de mensajes de error
-  if (mostrarError && millis() > tiempoError + 3000) {
-    mostrarError = false;
-  }
 }
 
 function dibujarPantallaInicio() {
@@ -161,33 +154,31 @@ function dibujarPantallaAdvertencia() {
     if (alphaAdvertencia <= 50) aumentandoAdvertencia = true;
   }
   
-  // Dibujar el título con efecto de parpadeo - AJUSTADO MÁS ABAJO
+  // Dibujar el título con efecto de parpadeo
   textSize(80);
   textStyle(BOLD);
   fill(0, alphaAdvertencia);
-  text("ADVERTENCIA", centroX, 200); // Ajustado de 150 a 200
+  text("ADVERTENCIA", centroX, 200);
   
-  // Dibujar el texto principal - TODOS AJUSTADOS MÁS ABAJO
+  // Dibujar el texto principal
   textSize(32);
   textStyle(NORMAL);
   fill(0);
   
-  // Primer párrafo - AJUSTADO
-  text("La siguiente será una experiencia que necesita el uso de", centroX, 320); // Ajustado de 250 a 320
-  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370); // Ajustado de 300 a 370 
-  text("una interacción totalmente inmersiva.", centroX, 420); // Ajustado de 350 a 420
+  // Primer párrafo
+  text("La siguiente será una experiencia que necesita el uso de", centroX, 320);
+  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370);
+  text("una interacción totalmente inmersiva.", centroX, 420);
   
-  // Espacio entre párrafos
+  // Segundo párrafo
+  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500);
+  text("pensamientos. Úsalas con precaución.", centroX, 550);
   
-  // Segundo párrafo - AJUSTADO
-  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500); // Ajustado de 450 a 500
-  text("pensamientos. Úsalas con precaución.", centroX, 550); // Ajustado de 500 a 550
-  
-  // Dibujar el botón (modo CORNER para precisión) - AJUSTADO MÁS CERCA DEL TEXTO
+  // Dibujar el botón
   rectMode(CORNER);
   
   let botonX = centroX - 100;
-  let botonY = 620; // Ajustado de 650 a 620 para estar más cerca del último párrafo
+  let botonY = 620;
   let botonAncho = 200;
   let botonAlto = 60;
   
@@ -219,105 +210,74 @@ function dibujarPantallaPregunta() {
     // Mostrar la imagen actual
     let img = imagenes[indiceFotoActual];
     if (img && img.width > 0) { // Verificar que la imagen se cargó correctamente
-      // Calcular dimensiones manteniendo proporción
-      let imgAncho, imgAlto;
-      if (img.width > img.height) {
-        imgAncho = min(width * 0.7, img.width);
-        imgAlto = img.height * (imgAncho / img.width);
-      } else {
-        imgAlto = min(height * 0.5, img.height);
-        imgAncho = img.width * (imgAlto / img.height);
-      }
-      
       // Mostrar imagen centrada
       imageMode(CENTER);
-      image(img, centroX, height * 0.3, imgAncho, imgAlto);
+      image(img, centroX, centroY, 600, 400);
     } else {
       // Mostrar mensaje si la imagen no se cargó
       fill(100);
       textSize(24);
-      text("Imagen no disponible", centroX, height * 0.3);
+      text("Imagen no disponible", centroX, centroY);
     }
   }
   
-  // Título de la pantalla
+  // Texto de la pregunta en la parte superior
   textAlign(CENTER, CENTER);
-  textSize(36);
+  textSize(30);
   textStyle(BOLD);
   fill(0);
-  text("¿Qué palabra viene a tu mente?", centroX, height * 0.6);
+  text("¿Qué palabra viene a tu mente?", centroX, height / 6);
   
-  // Campo de entrada
-  let campoX = centroX;
-  let campoY = height * 0.7;
-  let campoAncho = 300;
-  let campoAlto = 50;
-  
-  rectMode(CENTER);
-  if (inputActivo) {
-    fill(255);
-    stroke(0, 120, 255);
-    strokeWeight(3);
-  } else {
-    fill(255);
-    stroke(180);
-    strokeWeight(1);
-  }
-  rect(campoX, campoY, campoAncho, campoAlto, 8);
-  noStroke();
-  
-  // Texto dentro del campo
-  fill(0);
-  textSize(24);
-  textStyle(NORMAL);
-  text(inputValor, campoX, campoY);
-  
-  // Cursor parpadeante
-  if (inputActivo && frameCount % 60 < 30) {
-    let cursorX = campoX + textWidth(inputValor) / 2;
-    // Limitar posición del cursor
-    if (textWidth(inputValor) > campoAncho - 20) {
-      cursorX = campoX + (campoAncho / 2) - 10;
-    }
-    stroke(0);
-    strokeWeight(2);
-    line(cursorX + 5, campoY - 15, cursorX + 5, campoY + 15);
-    noStroke();
-  }
-  
-  // Botón Continuar
-  let botonX = centroX - 100;
-  let botonY = height * 0.8;
-  let botonAncho = 200;
+  // Área de respuesta/botón continuar
+  let botonX = centroX - 200;
+  let botonY = height - (height / 8) - 50;
+  let botonAncho = 400;
   let botonAlto = 50;
   
   rectMode(CORNER);
-  let sobreBotonContinuar = mouseX > botonX && mouseX < botonX + botonAncho && 
-                           mouseY > botonY && mouseY < botonY + botonAlto;
   
-  fill(sobreBotonContinuar ? 60 : 20);
-  rect(botonX, botonY, botonAncho, botonAlto, 10);
-  
-  fill(255);
-  textSize(24);
-  textStyle(BOLD);
-  text("Continuar", botonX + botonAncho/2, botonY + botonAlto/2);
-  
-  // Mostrar mensaje de error si existe
-  if (mostrarError) {
-    fill(200, 30, 30);
-    textSize(18);
+  // Cambiar entre área de respuesta y botón continuar
+  if (todoPreguntado) {
+    // Dibujar el botón Continuar
+    if (mouseX > botonX && mouseX < botonX + botonAncho && 
+        mouseY > botonY && mouseY < botonY + botonAlto) {
+      fill(60); // Más claro al pasar el cursor
+    } else {
+      fill(20); // Color normal
+    }
+    rect(botonX, botonY, botonAncho, botonAlto, 10);
+    
+    // Texto del botón
+    textSize(20);
+    textStyle(BOLD);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("Continuar", botonX + botonAncho/2, botonY + botonAlto/2);
+  } else {
+    // Dibujar el área de respuesta
+    fill(230);
+    rect(botonX, botonY, botonAncho, botonAlto, 10);
+    
+    // Etiqueta "Respuesta:"
+    textSize(20);
     textStyle(NORMAL);
-    text(mensajeError, centroX, height * 0.75);
+    fill(100);
+    textAlign(LEFT, CENTER);
+    text("Respuesta:", botonX + 10, botonY + botonAlto/2);
+    
+    // Texto del usuario
+    textSize(20);
+    textStyle(NORMAL);
+    fill(0);
+    textAlign(LEFT, CENTER);
+    text(inputValor, botonX + 140, botonY + botonAlto/2);
+    
+    // Cursor parpadeante
+    if (inputActivo && frameCount % 30 < 15) {
+      textSize(20);
+      text("|", botonX + 140 + textWidth(inputValor), botonY + botonAlto/2);
+    }
   }
-  
-  // Mostrar contador de imágenes
-  fill(100);
-  textSize(16);
-  text("Imagen " + (indiceFotoActual + 1) + " de " + imagenes.length, centroX, height * 0.15);
-  
-  // Mostrar contador de palabras ingresadas
-  text("Palabras ingresadas: " + palabrasUsuario.length, centroX, height * 0.9);
 }
 
 function mousePressed() {
@@ -331,7 +291,7 @@ function mousePressed() {
     return; // No cambiar de pantalla en el primer clic, solo activar audio
   }
   
-  // Manejar las interacciones según el estado actual
+  // Manejar interacciones según el estado actual
   if (estadoActual === "INICIO") {
     estadoActual = "ADVERTENCIA";
     console.log("Cambiando a pantalla ADVERTENCIA");
@@ -350,37 +310,35 @@ function mousePressed() {
     }
   }
   else if (estadoActual === "PREGUNTA") {
-    // Verificar clic en campo de entrada
-    let campoX = centroX;
-    let campoY = height * 0.7;
-    let campoAncho = 300;
-    let campoAlto = 50;
-    
-    if (mouseX > campoX - campoAncho/2 && mouseX < campoX + campoAncho/2 && 
-        mouseY > campoY - campoAlto/2 && mouseY < campoY + campoAlto/2) {
-      inputActivo = true;
-    } else {
-      inputActivo = false;
-    }
-    
-    // Verificar clic en botón Continuar
-    let botonX = centroX - 100;
-    let botonY = height * 0.8;
-    let botonAncho = 200;
+    // Verificar clic en área de respuesta o botón continuar
+    let botonX = centroX - 200;
+    let botonY = height - (height / 8) - 50;
+    let botonAncho = 400;
     let botonAlto = 50;
     
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
-      confirmarPalabra();
+      
+      if (todoPreguntado) {
+        // Acción del botón Continuar
+        console.log("Botón Continuar presionado");
+        // Aquí iría la transición a RESULTADOS
+        console.log("Debería cambiar a pantalla RESULTADOS");
+      } else {
+        // Activar área de respuesta
+        inputActivo = true;
+      }
+    } else {
+      inputActivo = false;
     }
   }
 }
 
 function keyPressed() {
-  // Capturar texto en el campo de entrada
-  if (estadoActual === "PREGUNTA" && inputActivo) {
+  // Capturar texto en la pantalla PREGUNTA
+  if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado) {
     if (keyCode === ENTER || keyCode === RETURN) {
-      confirmarPalabra();
+      guardarRespuestaYAvanzar();
     } 
     else if (keyCode === BACKSPACE) {
       if (inputValor.length > 0) {
@@ -389,7 +347,6 @@ function keyPressed() {
     } 
     else if (keyCode === 32 || (keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122) || 
             (keyCode >= 48 && keyCode <= 57) || keyCode === 192 || keyCode === 189) {
-      // Permitir letras, números, espacio y algunos caracteres especiales
       if (inputValor.length < 20) { // Limitar longitud
         inputValor += key;
       }
@@ -397,29 +354,23 @@ function keyPressed() {
   }
 }
 
-function confirmarPalabra() {
-  // Validar la entrada
-  if (inputValor.trim() === "") {
-    mostrarError = true;
-    mensajeError = "Ingresa una palabra antes de continuar";
-    tiempoError = millis();
-    return;
-  }
-  
-  // Guardar la palabra y avanzar
-  palabrasUsuario.push(inputValor.trim());
-  inputValor = "";
-  inputActivo = false;
-  
-  console.log("Palabra guardada: " + palabrasUsuario[palabrasUsuario.length - 1]);
-  
-  // Avanzar a la siguiente imagen
-  indiceFotoActual++;
-  
-  // Si hemos llegado al final de las imágenes, volver a la primera
-  if (indiceFotoActual >= imagenes.length) {
-    indiceFotoActual = 0;
-    console.log("Volviendo a la primera imagen");
+function guardarRespuestaYAvanzar() {
+  if (inputValor.trim() !== "") {
+    // Guardar respuesta
+    palabrasUsuario[indiceFotoActual] = inputValor.trim();
+    console.log("Respuesta guardada para foto " + (indiceFotoActual + 1) + ": " + inputValor);
+    
+    // Limpiar campo
+    inputValor = "";
+    
+    // Avanzar a la siguiente imagen
+    indiceFotoActual++;
+    
+    // Verificar si hemos llegado al final
+    if (indiceFotoActual >= imagenes.length) {
+      todoPreguntado = true;
+      console.log("Todas las preguntas completadas");
+    }
   }
 }
 
