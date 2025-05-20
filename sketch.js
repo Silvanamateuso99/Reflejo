@@ -41,11 +41,9 @@ function setup() {
   estadoActual = "INICIO";
   console.log("Iniciando en pantalla INICIO (REFLEJO)");
   
-  // Intentar reproducir música (probablemente requiera interacción del usuario)
-  if (musicaFondo && !musicaIniciada) {
-    // El navegador probablemente bloqueará esto hasta que el usuario interactúe
-    console.log('Intentando iniciar audio (requiere interacción del usuario)');
-  }
+  // No intentamos reproducir música automáticamente
+  // El usuario debe interactuar primero
+  console.log('Audio esperando interacción del usuario para iniciar');
 }
 
 function draw() {
@@ -87,17 +85,6 @@ function dibujarPantallaInicio() {
   // Texto principal con efecto de desvanecimiento
   fill(0, alpha);
   text("REFLEJO", centroX, centroY);
-  
-  // Intentar reproducir música si no se ha iniciado
-  if (musicaFondo && !musicaIniciada && musicaFondo.isLoaded()) {
-    try {
-      musicaFondo.loop();
-      musicaIniciada = true;
-      console.log("🎵 Música iniciada correctamente");
-    } catch (e) {
-      console.log("No se pudo iniciar la música automáticamente: " + e.message);
-    }
-  }
 }
 
 function dibujarPantallaAdvertencia() {
@@ -156,11 +143,22 @@ function dibujarPantallaAdvertencia() {
 
 // Manejar clic del mouse para transiciones entre pantallas
 function mousePressed() {
-  // Intentar reproducir música si no se ha iniciado (requiere interacción)
-  if (musicaFondo && !musicaIniciada && musicaFondo.isLoaded()) {
-    musicaFondo.loop();
-    musicaIniciada = true;
-    console.log("🎵 Música iniciada con interacción del usuario");
+  // Intentar reproducir música (requiere interacción del usuario)
+  // Esta línea es crucial para activar la reproducción de audio en navegadores
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+    console.log("AudioContext reanudado después de interacción");
+  }
+  
+  // Intentar reproducir música específicamente
+  if (musicaFondo && !musicaIniciada) {
+    try {
+      musicaFondo.loop();
+      musicaIniciada = true;
+      console.log("🎵 Música iniciada con interacción del usuario");
+    } catch (e) {
+      console.error("Error al iniciar música:", e);
+    }
   }
   
   if (estadoActual === "INICIO") {
@@ -177,10 +175,20 @@ function mousePressed() {
 
 // Función adicional para garantizar que el audio pueda reproducirse en dispositivos móviles
 function touchStarted() {
-  if (musicaFondo && !musicaIniciada && musicaFondo.isLoaded()) {
-    musicaFondo.loop();
-    musicaIniciada = true;
-    console.log("🎵 Música iniciada con interacción táctil");
+  // Reanudar contexto de audio tras interacción táctil
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+    console.log("AudioContext reanudado después de interacción táctil");
+  }
+  
+  if (musicaFondo && !musicaIniciada) {
+    try {
+      musicaFondo.loop();
+      musicaIniciada = true;
+      console.log("🎵 Música iniciada con interacción táctil");
+    } catch (e) {
+      console.error("Error al iniciar música (táctil):", e);
+    }
   }
   return false; // Prevenir acciones por defecto del navegador
 }
