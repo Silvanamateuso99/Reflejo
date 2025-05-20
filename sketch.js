@@ -5,12 +5,16 @@ let sombraOffsetX = 6, sombraOffsetY = -12;
 let centroX, centroY;
 
 // Estado actual de la aplicación
-let estadoActual = "BIENVENIDA"; // BIENVENIDA, INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
+let estadoActual = "ACTIVACION"; // ACTIVACION, INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
 
 // Variables para la pantalla de advertencia
 let alphaAdvertencia = 0;
 let aumentandoAdvertencia = true;
 let sobreBoton = false;
+
+// Variables para instrucciones de activación
+let alphaActivacion = 0;
+let mostrarInstruccionesActivacion = true;
 
 // Variables para audio
 let audioContext;
@@ -73,56 +77,45 @@ function setup() {
   // Cargar audio al inicio
   cargarAudio();
   
-  // Iniciar en pantalla de bienvenida
-  estadoActual = "BIENVENIDA";
-  console.log("Iniciando en pantalla BIENVENIDA");
+  // Iniciar en pantalla de activación que se superpone a la pantalla INICIO
+  estadoActual = "ACTIVACION";
+  console.log("Iniciando en pantalla ACTIVACION sobre INICIO");
 }
 
 function draw() {
-  // Determinar qué pantalla mostrar según el estado actual
-  if (estadoActual === "BIENVENIDA") {
-    dibujarPantallaBienvenida();
-  } else if (estadoActual === "INICIO") {
-    dibujarPantallaInicio();
+  // Primero dibujar la pantalla INICIO como fondo
+  dibujarPantallaInicio();
+  
+  // Determinar si se deben mostrar instrucciones de activación o el resto de estados
+  if (estadoActual === "ACTIVACION" && mostrarInstruccionesActivacion) {
+    mostrarInstruccionesActivacion();
   } else if (estadoActual === "ADVERTENCIA") {
     dibujarPantallaAdvertencia();
   }
+  // Futuros estados se agregarían aquí
 }
 
-function dibujarPantallaBienvenida() {
-  background(20); // Fondo oscuro para la pantalla de bienvenida
+function mostrarInstruccionesActivacion() {
+  // Efecto de parpadeo suave para las instrucciones
+  alphaActivacion = 127 + 127 * sin(frameCount * 0.05);
   
-  // Título
-  textSize(100);
-  textStyle(BOLD);
-  fill(255);
-  text("REFLEJO", centroX, centroY - 150);
+  // Panel semi-transparente para instrucciones (sutil)
+  noStroke();
+  fill(255, 200); // Blanco semi-transparente
+  rectMode(CENTER);
+  rect(centroX, centroY, 600, 150, 15); // Panel redondeado
   
-  // Instrucciones
-  textSize(24);
-  textStyle(NORMAL);
-  fill(220);
-  text("Esta obra utiliza audio como parte de la experiencia", centroX, centroY - 20);
-  
-  // Instrucción específica de audio
+  // Instrucciones para hacer clic
   textSize(28);
   textStyle(BOLD);
-  fill(255, 200, 100);
-  text("HAGA CLIC AQUÍ PARA COMENZAR LA EXPERIENCIA", centroX, centroY + 50);
+  fill(20, 20, 100, alphaActivacion); // Azul oscuro con efecto de parpadeo
+  text("HAGA CLIC PARA INICIAR LA EXPERIENCIA", centroX, centroY - 15);
   
-  // Nota adicional
-  textSize(18);
-  fill(180);
-  text("(Al hacer clic, permitirá la reproducción de audio)", centroX, centroY + 100);
-  
-  // Efecto de parpadeo para el botón
-  if (frameCount % 60 < 30) {
-    stroke(255);
-    strokeWeight(3);
-    noFill();
-    ellipse(centroX, centroY + 50, 450, 70);
-    noStroke();
-  }
+  // Nota sobre audio
+  textSize(16);
+  textStyle(NORMAL);
+  fill(80, 80, 80);
+  text("(Se activará el audio como parte de la experiencia)", centroX, centroY + 25);
 }
 
 function dibujarPantallaInicio() {
@@ -207,7 +200,7 @@ function dibujarPantallaAdvertencia() {
 }
 
 function mousePressed() {
-  if (estadoActual === "BIENVENIDA") {
+  if (estadoActual === "ACTIVACION" && mostrarInstruccionesActivacion) {
     // Iniciar contexto de audio y reproducir música
     if (audioContext && audioContext.state !== 'running') {
       audioContext.resume()
@@ -220,11 +213,11 @@ function mousePressed() {
       reproducirAudio();
     }
     
-    // Transición a la primera pantalla
-    estadoActual = "INICIO";
-    console.log("Cambiando a pantalla INICIO (REFLEJO)");
+    // Ocultar instrucciones de activación y permitir la transición al siguiente estado
+    mostrarInstruccionesActivacion = false;
+    console.log("Instrucciones de activación ocultadas, mostrando INICIO (REFLEJO)");
   }
-  else if (estadoActual === "INICIO") {
+  else if (estadoActual === "ACTIVACION" && !mostrarInstruccionesActivacion) {
     // Transición a pantalla de advertencia
     estadoActual = "ADVERTENCIA";
     console.log("Cambiando a pantalla de ADVERTENCIA");
