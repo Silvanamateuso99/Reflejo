@@ -257,7 +257,7 @@ function dibujarPantallaPregunta() {
   textSize(30);
   textStyle(BOLD);
   fill(0);
-  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 0.1); // Ajustado a 0.2
+  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 1); // Ajustado a 0.2
   
   // Verificar si hay imágenes cargadas
   if (indiceFotoActual < imagenes.length) {
@@ -276,7 +276,7 @@ function dibujarPantallaPregunta() {
   
   // Área de respuesta/botón continuar - AJUSTADO HACIA ARRIBA
   let botonX = centroX - 200;
-  let botonY = height * 0.2; // Ajustado a 0.8
+  let botonY = height * 1; // Ajustado a 0.8
   let botonAncho = 400;
   let botonAlto = 50;
   
