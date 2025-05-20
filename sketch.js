@@ -6,8 +6,8 @@ let aumentando = true;
 let sombraOffsetX = 6, sombraOffsetY = -12;
 let centroX, centroY;
 
-// Estado actual de la aplicación - Aseguramos que comience en "INICIO"
-let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
+// Estado actual de la aplicación - Comenzar con una pantalla de bienvenida
+let estadoActual = "BIENVENIDA"; // BIENVENIDA, INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
 
 // Variables para la pantalla de advertencia
 let alphaAdvertencia = 0;
@@ -37,18 +37,16 @@ function setup() {
   // Configuración de texto
   textAlign(CENTER, CENTER);
   
-  // Forzar estado inicial a "INICIO"
-  estadoActual = "INICIO";
-  console.log("Iniciando en pantalla INICIO (REFLEJO)");
-  
-  // No intentamos reproducir música automáticamente
-  // El usuario debe interactuar primero
-  console.log('Audio esperando interacción del usuario para iniciar');
+  // Iniciar en pantalla de bienvenida
+  estadoActual = "BIENVENIDA";
+  console.log("Iniciando en pantalla BIENVENIDA");
 }
 
 function draw() {
   // Determinar qué pantalla mostrar según el estado actual
-  if (estadoActual === "INICIO") {
+  if (estadoActual === "BIENVENIDA") {
+    dibujarPantallaBienvenida();
+  } else if (estadoActual === "INICIO") {
     dibujarPantallaInicio();
   } else if (estadoActual === "ADVERTENCIA") {
     dibujarPantallaAdvertencia();
@@ -57,6 +55,42 @@ function draw() {
   // Debug en consola (solo la primera vez)
   if (frameCount === 1) {
     console.log("Estado actual: " + estadoActual);
+  }
+}
+
+function dibujarPantallaBienvenida() {
+  background(20); // Fondo oscuro para la pantalla de bienvenida
+  
+  // Título
+  textSize(100);
+  textStyle(BOLD);
+  fill(255);
+  text("REFLEJO", centroX, centroY - 150);
+  
+  // Instrucciones
+  textSize(24);
+  textStyle(NORMAL);
+  fill(220);
+  text("Esta obra utiliza audio como parte de la experiencia", centroX, centroY - 20);
+  
+  // Instrucción específica de audio
+  textSize(28);
+  textStyle(BOLD);
+  fill(255, 200, 100);
+  text("HAGA CLIC AQUÍ PARA COMENZAR LA EXPERIENCIA", centroX, centroY + 50);
+  
+  // Nota adicional
+  textSize(18);
+  fill(180);
+  text("(Al hacer clic, permitirá la reproducción de audio)", centroX, centroY + 100);
+  
+  // Efecto de parpadeo para el botón
+  if (frameCount % 60 < 30) {
+    stroke(255);
+    strokeWeight(3);
+    noFill();
+    ellipse(centroX, centroY + 50, 450, 70);
+    noStroke();
   }
 }
 
@@ -143,25 +177,31 @@ function dibujarPantallaAdvertencia() {
 
 // Manejar clic del mouse para transiciones entre pantallas
 function mousePressed() {
-  // Intentar reproducir música (requiere interacción del usuario)
-  // Esta línea es crucial para activar la reproducción de audio en navegadores
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-    console.log("AudioContext reanudado después de interacción");
-  }
-  
-  // Intentar reproducir música específicamente
-  if (musicaFondo && !musicaIniciada) {
-    try {
-      musicaFondo.loop();
-      musicaIniciada = true;
-      console.log("🎵 Música iniciada con interacción del usuario");
-    } catch (e) {
-      console.error("Error al iniciar música:", e);
+  if (estadoActual === "BIENVENIDA") {
+    // Intentar iniciar el audio con la interacción del usuario
+    if (getAudioContext().state !== 'running') {
+      getAudioContext().resume().then(() => {
+        console.log("AudioContext reanudado después de interacción");
+      });
     }
+    
+    // Intentar reproducir música
+    if (musicaFondo && !musicaIniciada) {
+      try {
+        musicaFondo.play();
+        musicaFondo.loop();
+        musicaIniciada = true;
+        console.log("🎵 Música iniciada con interacción del usuario");
+      } catch (e) {
+        console.error("Error al iniciar música:", e);
+      }
+    }
+    
+    // Transición a la pantalla INICIO
+    estadoActual = "INICIO";
+    console.log("Cambiando a pantalla INICIO (REFLEJO)");
   }
-  
-  if (estadoActual === "INICIO") {
+  else if (estadoActual === "INICIO") {
     // Transición a pantalla de advertencia
     estadoActual = "ADVERTENCIA";
     console.log("Cambiando a pantalla de ADVERTENCIA");
@@ -175,19 +215,22 @@ function mousePressed() {
 
 // Función adicional para garantizar que el audio pueda reproducirse en dispositivos móviles
 function touchStarted() {
-  // Reanudar contexto de audio tras interacción táctil
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-    console.log("AudioContext reanudado después de interacción táctil");
-  }
-  
-  if (musicaFondo && !musicaIniciada) {
-    try {
-      musicaFondo.loop();
-      musicaIniciada = true;
-      console.log("🎵 Música iniciada con interacción táctil");
-    } catch (e) {
-      console.error("Error al iniciar música (táctil):", e);
+  if (estadoActual === "BIENVENIDA") {
+    // Reanudar contexto de audio tras interacción táctil
+    if (getAudioContext().state !== 'running') {
+      getAudioContext().resume();
+      console.log("AudioContext reanudado después de interacción táctil");
+    }
+    
+    if (musicaFondo && !musicaIniciada) {
+      try {
+        musicaFondo.play();
+        musicaFondo.loop();
+        musicaIniciada = true;
+        console.log("🎵 Música iniciada con interacción táctil");
+      } catch (e) {
+        console.error("Error al iniciar música (táctil):", e);
+      }
     }
   }
   return false; // Prevenir acciones por defecto del navegador
