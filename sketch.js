@@ -30,10 +30,7 @@ let tiempoError = 0;
 
 // Variables para pantalla de resultados
 let palabrasVisuales = [];
-let coloresPalabras = [];
-let tamanosPalabras = [];
 let posicionesPalabras = [];
-let rotacionesPalabras = [];
 let arrastrando = false;
 let indicePalabraArrastrada = -1;
 let offsetArrastreX = 0;
@@ -44,7 +41,13 @@ function preload() {
   // Precargar imágenes
   for (let i = 1; i <= 12; i++) {
     let nombreArchivo = 'foto' + i + '.jpg';
-    imagenes.push(loadImage(nombreArchivo));
+    try {
+      let img = loadImage(nombreArchivo);
+      imagenes.push(img);
+      console.log('Imagen cargada: ' + nombreArchivo);
+    } catch (e) {
+      console.error('Error al cargar imagen: ' + nombreArchivo);
+    }
   }
 }
 
@@ -93,9 +96,6 @@ function setup() {
   centroY = height / 2;
   cargarAudio();
   textAlign(CENTER, CENTER);
-  
-  // Generar colores aleatorios para las palabras visuales
-  colorMode(HSB, 100);
 }
 
 function draw() {
@@ -171,33 +171,31 @@ function dibujarPantallaAdvertencia() {
     if (alphaAdvertencia <= 50) aumentandoAdvertencia = true;
   }
   
-  // Dibujar el título con efecto de parpadeo - AJUSTADO MÁS ABAJO
+  // Dibujar el título con efecto de parpadeo
   textSize(80);
   textStyle(BOLD);
   fill(0, alphaAdvertencia);
-  text("ADVERTENCIA", centroX, 200); // Ajustado de 150 a 200
+  text("ADVERTENCIA", centroX, 200);
   
-  // Dibujar el texto principal - TODOS AJUSTADOS MÁS ABAJO
+  // Dibujar el texto principal
   textSize(32);
   textStyle(NORMAL);
   fill(0);
   
-  // Primer párrafo - AJUSTADO
-  text("La siguiente será una experiencia que necesita el uso de", centroX, 320); // Ajustado de 250 a 320
-  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370); // Ajustado de 300 a 370 
-  text("una interacción totalmente inmersiva.", centroX, 420); // Ajustado de 350 a 420
+  // Primer párrafo
+  text("La siguiente será una experiencia que necesita el uso de", centroX, 320);
+  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370);
+  text("una interacción totalmente inmersiva.", centroX, 420);
   
-  // Espacio entre párrafos
+  // Segundo párrafo
+  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500);
+  text("pensamientos. Úsalas con precaución.", centroX, 550);
   
-  // Segundo párrafo - AJUSTADO
-  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500); // Ajustado de 450 a 500
-  text("pensamientos. Úsalas con precaución.", centroX, 550); // Ajustado de 500 a 550
-  
-  // Dibujar el botón (modo CORNER para precisión) - AJUSTADO MÁS CERCA DEL TEXTO
+  // Dibujar el botón
   rectMode(CORNER);
   
   let botonX = centroX - 100;
-  let botonY = 620; // Ajustado de 650 a 620 para estar más cerca del último párrafo
+  let botonY = 620;
   let botonAncho = 200;
   let botonAlto = 60;
   
@@ -224,202 +222,176 @@ function dibujarPantallaAdvertencia() {
 function dibujarPantallaPregunta() {
   background(240);
   
-  // Mostrar la imagen actual
+  // Verificar si hay imágenes cargadas
   if (imagenes.length > 0 && indiceFotoActual < imagenes.length) {
-    // Calcular dimensiones para mantener la proporción pero que quepa en el canvas
+    // Mostrar la imagen actual
     let img = imagenes[indiceFotoActual];
-    let proporcion = min(600 / img.width, 400 / img.height);
-    let imgAncho = img.width * proporcion;
-    let imgAlto = img.height * proporcion;
-    
-    // Mostrar imagen centrada en la parte superior
-    imageMode(CENTER);
-    image(img, centroX, 250, imgAncho, imgAlto);
-    
-    // Mostrar número de imagen
-    textSize(16);
-    textStyle(NORMAL);
-    fill(100);
-    text("Imagen " + (indiceFotoActual + 1) + " de " + imagenes.length, centroX, 50);
+    if (img && img.width > 0) { // Verificar que la imagen se cargó correctamente
+      // Calcular dimensiones manteniendo proporción
+      let imgAncho, imgAlto;
+      if (img.width > img.height) {
+        imgAncho = min(width * 0.7, img.width);
+        imgAlto = img.height * (imgAncho / img.width);
+      } else {
+        imgAlto = min(height * 0.5, img.height);
+        imgAncho = img.width * (imgAlto / img.height);
+      }
+      
+      // Mostrar imagen centrada
+      imageMode(CENTER);
+      image(img, centroX, height * 0.3, imgAncho, imgAlto);
+    } else {
+      // Mostrar mensaje si la imagen no se cargó
+      fill(100);
+      textSize(24);
+      text("Imagen no disponible", centroX, height * 0.3);
+    }
   }
   
-  // Instrucciones
-  textSize(24);
-  textStyle(NORMAL);
+  // Título de la pantalla
+  textAlign(CENTER, CENTER);
+  textSize(36);
+  textStyle(BOLD);
   fill(0);
-  text("¿Qué palabra viene a tu mente al ver esta imagen?", centroX, 500);
+  text("¿Qué palabra viene a tu mente?", centroX, height * 0.6);
   
   // Campo de entrada
+  let campoX = centroX;
+  let campoY = height * 0.7;
+  let campoAncho = 300;
+  let campoAlto = 50;
+  
   rectMode(CENTER);
   if (inputActivo) {
-    fill(255); // Blanco cuando está activo
-    stroke(0, 150, 255);
+    fill(255);
+    stroke(0, 120, 255);
     strokeWeight(3);
   } else {
-    fill(240);
+    fill(255);
     stroke(180);
     strokeWeight(1);
   }
-  rect(centroX, 550, 300, 50, 5);
+  rect(campoX, campoY, campoAncho, campoAlto, 8);
   noStroke();
   
-  // Texto del campo de entrada
-  textSize(20);
-  textAlign(CENTER, CENTER);
+  // Texto dentro del campo
   fill(0);
-  text(inputValor, centroX, 550);
+  textSize(24);
+  textStyle(NORMAL);
+  text(inputValor, campoX, campoY);
   
-  // Cursor de texto (parpadea)
-  if (inputActivo && (frameCount % 60 < 30)) {
-    let textPosX = centroX + textWidth(inputValor) / 2;
-    if (textWidth(inputValor) > 250) textPosX = centroX + 125; // Limitar posición
+  // Cursor parpadeante
+  if (inputActivo && frameCount % 60 < 30) {
+    let cursorX = campoX + textWidth(inputValor) / 2;
+    // Limitar posición del cursor
+    if (textWidth(inputValor) > campoAncho - 20) {
+      cursorX = campoX + (campoAncho / 2) - 10;
+    }
     stroke(0);
     strokeWeight(2);
-    line(textPosX + 5, 540, textPosX + 5, 560);
+    line(cursorX + 5, campoY - 15, cursorX + 5, campoY + 15);
     noStroke();
   }
   
   // Botón Continuar
-  rectMode(CORNER);
   let botonX = centroX - 100;
-  let botonY = 620;
+  let botonY = height * 0.8;
   let botonAncho = 200;
   let botonAlto = 50;
   
+  rectMode(CORNER);
   let sobreBotonContinuar = mouseX > botonX && mouseX < botonX + botonAncho && 
-                     mouseY > botonY && mouseY < botonY + botonAlto;
+                           mouseY > botonY && mouseY < botonY + botonAlto;
   
-  if (sobreBotonContinuar) {
-    fill(60);
-  } else {
-    fill(20);
-  }
+  fill(sobreBotonContinuar ? 60 : 20);
   rect(botonX, botonY, botonAncho, botonAlto, 10);
   
+  fill(255);
   textSize(24);
   textStyle(BOLD);
-  fill(255);
   text("Continuar", botonX + botonAncho/2, botonY + botonAlto/2);
   
-  // Mostrar mensaje de error si corresponde
+  // Mostrar mensaje de error si existe
   if (mostrarError) {
+    fill(200, 30, 30);
     textSize(18);
-    fill(255, 0, 0);
-    text(mensajeError, centroX, 590);
+    textStyle(NORMAL);
+    text(mensajeError, centroX, height * 0.75);
   }
   
-  // Mostrar palabras ingresadas
+  // Mostrar contador de imágenes
+  fill(100);
   textSize(16);
-  textStyle(ITALIC);
-  fill(80);
-  let textoIngresado = "Palabras ingresadas: ";
-  if (palabrasUsuario.length > 0) {
-    textoIngresado += palabrasUsuario.join(", ");
-  } else {
-    textoIngresado += "ninguna aún";
-  }
-  text(textoIngresado, centroX, 680);
+  text("Imagen " + (indiceFotoActual + 1) + " de " + imagenes.length, centroX, height * 0.15);
   
-  // Botón para avanzar a resultados (solo visible cuando se han ingresado suficientes palabras)
-  if (palabrasUsuario.length >= 4) {
-    let botonResultadosX = centroX - 150;
-    let botonResultadosY = 720;
-    let botonResultadosAncho = 300;
-    let botonResultadosAlto = 50;
-    
-    let sobreBotonResultados = mouseX > botonResultadosX && mouseX < botonResultadosX + botonResultadosAncho && 
-                      mouseY > botonResultadosY && mouseY < botonResultadosY + botonResultadosAlto;
-    
-    if (sobreBotonResultados) {
-      fill(0, 120, 60);
-    } else {
-      fill(0, 100, 40);
-    }
-    rect(botonResultadosX, botonResultadosY, botonResultadosAncho, botonResultadosAlto, 10);
-    
-    textSize(20);
-    textStyle(BOLD);
-    fill(255);
-    text("Ver Resultado Final", botonResultadosX + botonResultadosAncho/2, botonResultadosY + botonResultadosAlto/2);
-  }
+  // Mostrar contador de palabras ingresadas
+  text("Palabras ingresadas: " + palabrasUsuario.length, centroX, height * 0.9);
 }
 
 function dibujarPantallaResultados() {
-  // Fondo del canvas para dibujar
+  // Fondo negro para el canvas de dibujo
   background(20);
   
-  // Dibujar todas las palabras visuales
+  // Título
+  textSize(36);
+  textStyle(BOLD);
+  fill(240);
+  text("REFLEJO: Tu poesía visual", centroX, 50);
+  
+  // Dibujar todas las palabras ingresadas
   for (let i = 0; i < palabrasVisuales.length; i++) {
-    // Usar modo de color HSB
-    colorMode(HSB, 100);
+    let palabra = palabrasVisuales[i];
+    let pos = posicionesPalabras[i];
     
-    // Establecer color y estilo para cada palabra
-    fill(coloresPalabras[i]);
-    textSize(tamanosPalabras[i]);
+    // Calcular distancia al centro para efectos visuales
+    let distanciaCentro = dist(pos.x, pos.y, centroX, centroY);
+    let maxDist = dist(0, 0, width/2, height/2);
+    let intensidad = map(distanciaCentro, 0, maxDist, 1, 0.5);
+    
+    // Calcular tamaño basado en la longitud de la palabra
+    let tamano = map(palabra.length, 1, 15, 60, 24);
+    
+    // Aplicar efectos visuales
+    textSize(tamano);
     textStyle(NORMAL);
     
-    // Aplicar rotación
-    push();
-    translate(posicionesPalabras[i].x, posicionesPalabras[i].y);
-    rotate(rotacionesPalabras[i]);
+    // Color basado en posición (más blanco hacia el centro, más coloreado hacia afuera)
+    let r = map(pos.x, 0, width, 150, 255);
+    let g = map(pos.y, 0, height, 150, 255);
+    let b = map(distanciaCentro, 0, maxDist, 255, 150);
+    fill(r, g, b, 255 * intensidad);
     
     // Dibujar la palabra
-    text(palabrasVisuales[i], 0, 0);
-    pop();
+    text(palabra, pos.x, pos.y);
   }
   
-  // Instrucciones
+  // Instrucciones en la parte inferior
+  fill(0, 0, 0, 200);
   rectMode(CORNER);
-  fill(0, 0, 0, 180);
-  rect(0, height - 100, width, 100);
+  rect(0, height - 80, width, 80);
   
-  textAlign(CENTER, CENTER);
-  textSize(18);
   fill(255);
-  text("Haz clic y arrastra las palabras para crear tu composición visual", centroX, height - 70);
-  text("Presiona 'S' para guardar tu creación", centroX, height - 40);
+  textSize(18);
+  textStyle(NORMAL);
+  text("Haz clic y arrastra las palabras para crear tu composición visual", centroX, height - 55);
+  text("Presiona 'S' para guardar tu creación como imagen", centroX, height - 25);
   
-  // Mostrar botón para volver a inicio
-  let botonX = 20;
+  // Botón para volver al inicio
+  let botonX = 50;
   let botonY = 20;
-  let botonAncho = 180;
+  let botonAncho = 150;
   let botonAlto = 40;
   
-  let sobreBotonInicio = mouseX > botonX && mouseX < botonX + botonAncho && 
-                  mouseY > botonY && mouseY < botonY + botonAlto;
+  let sobreBotonReinicio = mouseX > botonX && mouseX < botonX + botonAncho && 
+                          mouseY > botonY && mouseY < botonY + botonAlto;
   
-  if (sobreBotonInicio) {
-    fill(60);
-  } else {
-    fill(40);
-  }
-  rect(botonX, botonY, botonAncho, botonAlto, 10);
+  rectMode(CORNER);
+  fill(sobreBotonReinicio ? 80 : 50);
+  rect(botonX, botonY, botonAncho, botonAlto, 8);
   
-  textSize(18);
   fill(255);
-  text("Reiniciar REFLEJO", botonX + botonAncho/2, botonY + botonAlto/2);
-}
-
-function keyPressed() {
-  // Para la pantalla de preguntas
-  if (estadoActual === "PREGUNTA" && inputActivo) {
-    if (keyCode === ENTER) {
-      confirmarPalabra();
-    } else if (keyCode === BACKSPACE) {
-      if (inputValor.length > 0) {
-        inputValor = inputValor.substring(0, inputValor.length - 1);
-      }
-    } else if (keyCode >= 32 && keyCode <= 126) { // Caracteres imprimibles
-      if (inputValor.length < 20) { // Limitar longitud
-        inputValor += key;
-      }
-    }
-  }
-  
-  // Para la pantalla de resultados
-  if (estadoActual === "RESULTADOS" && key === 's') {
-    saveCanvas('REFLEJO_' + year() + month() + day() + '_' + hour() + minute() + second(), 'png');
-  }
+  textSize(16);
+  text("Volver al inicio", botonX + botonAncho/2, botonY + botonAlto/2);
 }
 
 function mousePressed() {
@@ -433,13 +405,13 @@ function mousePressed() {
     return; // No cambiar de pantalla en el primer clic, solo activar audio
   }
   
-  // Si ya está reproduciendo música, manejar transiciones de pantallas
+  // Manejar las interacciones según el estado actual
   if (estadoActual === "INICIO") {
     estadoActual = "ADVERTENCIA";
     console.log("Cambiando a pantalla ADVERTENCIA");
   } 
   else if (estadoActual === "ADVERTENCIA") {
-    // Verificar si se hizo clic en el botón Bienvenido
+    // Verificar clic en botón Bienvenido
     let botonX = centroX - 100;
     let botonY = 620;
     let botonAncho = 200;
@@ -447,23 +419,27 @@ function mousePressed() {
     
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
-      // Cambiar a pantalla de pregunta
       estadoActual = "PREGUNTA";
       console.log("Cambiando a pantalla PREGUNTA");
     }
   }
   else if (estadoActual === "PREGUNTA") {
-    // Verificar si se hizo clic en el campo de entrada
-    if (mouseX > centroX - 150 && mouseX < centroX + 150 && 
-        mouseY > 525 && mouseY < 575) {
+    // Verificar clic en campo de entrada
+    let campoX = centroX;
+    let campoY = height * 0.7;
+    let campoAncho = 300;
+    let campoAlto = 50;
+    
+    if (mouseX > campoX - campoAncho/2 && mouseX < campoX + campoAncho/2 && 
+        mouseY > campoY - campoAlto/2 && mouseY < campoY + campoAlto/2) {
       inputActivo = true;
     } else {
       inputActivo = false;
     }
     
-    // Verificar si se hizo clic en el botón Continuar
+    // Verificar clic en botón Continuar
     let botonX = centroX - 100;
-    let botonY = 620;
+    let botonY = height * 0.8;
     let botonAncho = 200;
     let botonAlto = 50;
     
@@ -471,46 +447,37 @@ function mousePressed() {
         mouseY > botonY && mouseY < botonY + botonAlto) {
       confirmarPalabra();
     }
-    
-    // Verificar si se hizo clic en el botón de Resultados (si es visible)
-    if (palabrasUsuario.length >= 4) {
-      let botonResultadosX = centroX - 150;
-      let botonResultadosY = 720;
-      let botonResultadosAncho = 300;
-      let botonResultadosAlto = 50;
-      
-      if (mouseX > botonResultadosX && mouseX < botonResultadosX + botonResultadosAncho && 
-          mouseY > botonResultadosY && mouseY < botonResultadosY + botonResultadosAlto) {
-        // Cambiar a pantalla de resultados
-        prepararPantallaResultados();
-        estadoActual = "RESULTADOS";
-        console.log("Cambiando a pantalla RESULTADOS");
-      }
-    }
   }
   else if (estadoActual === "RESULTADOS") {
-    // Verificar si se hizo clic en el botón para regresar al inicio
-    let botonX = 20;
+    // Verificar clic en botón de reinicio
+    let botonX = 50;
     let botonY = 20;
-    let botonAncho = 180;
+    let botonAncho = 150;
     let botonAlto = 40;
     
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
-      // Reiniciar la aplicación
       resetearAplicacion();
       estadoActual = "INICIO";
-      console.log("Reiniciando aplicación");
+      console.log("Volviendo a INICIO");
+      return;
     }
     
-    // Verificar si se hizo clic en alguna palabra para arrastrar
-    for (let i = palabrasVisuales.length - 1; i >= 0; i--) {
-      let d = dist(mouseX, mouseY, posicionesPalabras[i].x, posicionesPalabras[i].y);
-      if (d < tamanosPalabras[i] / 2) {
+    // Verificar clic en alguna palabra para arrastrar
+    for (let i = 0; i < palabrasVisuales.length; i++) {
+      let palabra = palabrasVisuales[i];
+      let pos = posicionesPalabras[i];
+      let tamano = map(palabra.length, 1, 15, 60, 24);
+      
+      // Radio de detección basado en el tamaño de la palabra
+      let radioDeteccion = tamano * 0.8;
+      
+      // Verificar si el clic está dentro del radio de la palabra
+      if (dist(mouseX, mouseY, pos.x, pos.y) < radioDeteccion) {
         arrastrando = true;
         indicePalabraArrastrada = i;
-        offsetArrastreX = posicionesPalabras[i].x - mouseX;
-        offsetArrastreY = posicionesPalabras[i].y - mouseY;
+        offsetArrastreX = pos.x - mouseX;
+        offsetArrastreY = pos.y - mouseY;
         break;
       }
     }
@@ -519,6 +486,7 @@ function mousePressed() {
 
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && arrastrando && indicePalabraArrastrada >= 0) {
+    // Actualizar posición de la palabra arrastrada
     posicionesPalabras[indicePalabraArrastrada].x = mouseX + offsetArrastreX;
     posicionesPalabras[indicePalabraArrastrada].y = mouseY + offsetArrastreY;
   }
@@ -531,59 +499,87 @@ function mouseReleased() {
   }
 }
 
+function keyPressed() {
+  // Capturar texto en el campo de entrada
+  if (estadoActual === "PREGUNTA" && inputActivo) {
+    if (keyCode === ENTER || keyCode === RETURN) {
+      confirmarPalabra();
+    } 
+    else if (keyCode === BACKSPACE) {
+      if (inputValor.length > 0) {
+        inputValor = inputValor.substring(0, inputValor.length - 1);
+      }
+    } 
+    else if (keyCode === 32 || (keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122) || 
+            (keyCode >= 48 && keyCode <= 57) || keyCode === 192 || keyCode === 189) {
+      // Permitir letras, números, espacio y algunos caracteres especiales
+      if (inputValor.length < 20) { // Limitar longitud
+        inputValor += key;
+      }
+    }
+  }
+  
+  // Guardar imagen en pantalla RESULTADOS
+  if (estadoActual === "RESULTADOS" && (key === 's' || key === 'S')) {
+    let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '_' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
+    saveCanvas('REFLEJO_' + timestamp, 'png');
+    console.log("Imagen guardada");
+  }
+}
+
 function confirmarPalabra() {
+  // Validar la entrada
   if (inputValor.trim() === "") {
     mostrarError = true;
-    mensajeError = "Por favor, ingresa una palabra";
+    mensajeError = "Ingresa una palabra antes de continuar";
     tiempoError = millis();
     return;
   }
   
-  // Añadir palabra y avanzar a la siguiente imagen
+  // Guardar la palabra y avanzar
   palabrasUsuario.push(inputValor.trim());
   inputValor = "";
+  inputActivo = false;
   
-  // Avanzar a la siguiente imagen o volver a la primera si ya se vieron todas
-  indiceFotoActual = (indiceFotoActual + 1) % imagenes.length;
+  console.log("Palabra guardada: " + palabrasUsuario[palabrasUsuario.length - 1]);
   
-  console.log("Palabra añadida. Total:", palabrasUsuario.length);
+  // Avanzar a la siguiente imagen o a RESULTADOS si completamos todas
+  indiceFotoActual++;
+  
+  // Si hemos llegado al final de las imágenes o tenemos suficientes palabras
+  if (indiceFotoActual >= imagenes.length || palabrasUsuario.length >= 12) {
+    prepararPantallaResultados();
+    estadoActual = "RESULTADOS";
+    console.log("Cambiando a pantalla RESULTADOS");
+  }
 }
 
 function prepararPantallaResultados() {
-  // Copiar las palabras ingresadas como palabras visuales
   palabrasVisuales = [...palabrasUsuario];
   
-  // Crear propiedades visuales para cada palabra
+  // Crear posiciones iniciales aleatorias para cada palabra
   for (let i = 0; i < palabrasVisuales.length; i++) {
-    // Color aleatorio (en modo HSB)
-    coloresPalabras.push(color(random(100), 80, 90));
+    // Posicionar las palabras en lugares aleatorios dentro del canvas
+    // pero evitar los bordes y la parte inferior donde están las instrucciones
+    let posX = random(width * 0.1, width * 0.9);
+    let posY = random(height * 0.15, height * 0.85);
     
-    // Tamaño aleatorio entre 30 y 80
-    tamanosPalabras.push(random(30, 80));
-    
-    // Posición aleatoria en el canvas (evitando los bordes)
-    posicionesPalabras.push(createVector(
-      random(100, width - 100),
-      random(100, height - 150)
-    ));
-    
-    // Rotación aleatoria entre -PI/6 y PI/6 radianes
-    rotacionesPalabras.push(random(-PI/6, PI/6));
+    posicionesPalabras.push(createVector(posX, posY));
   }
   
-  console.log("Pantalla de resultados preparada con", palabrasVisuales.length, "palabras");
+  console.log("Pantalla RESULTADOS preparada con " + palabrasVisuales.length + " palabras");
 }
 
 function resetearAplicacion() {
-  // Reiniciar todas las variables necesarias
+  // Reiniciar variables para volver al inicio
   indiceFotoActual = 0;
   palabrasUsuario = [];
   inputValor = "";
   palabrasVisuales = [];
-  coloresPalabras = [];
-  tamanosPalabras = [];
   posicionesPalabras = [];
-  rotacionesPalabras = [];
+  arrastrando = false;
+  indicePalabraArrastrada = -1;
+  mostrarError = false;
 }
 
 function touchStarted() {
