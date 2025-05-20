@@ -25,21 +25,8 @@ let palabrasUsuario = new Array(12).fill(""); // Array para 12 respuestas
 let inputActivo = false;
 let inputValor = "";
 let todoPreguntado = false;
-
-// Cargar audio e imágenes
-function preload() {
-  // Precargar imágenes
-  for (let i = 1; i <= 12; i++) {
-    let nombreArchivo = 'foto' + i + '.jpg';
-    try {
-      let img = loadImage(nombreArchivo);
-      imagenes.push(img);
-      console.log('Imagen cargada: ' + nombreArchivo);
-    } catch (e) {
-      console.error('Error al cargar imagen: ' + nombreArchivo);
-    }
-  }
-}
+let cargando = true;
+let imagenesListas = 0;
 
 // Cargar audio
 function cargarAudio() {
@@ -80,12 +67,49 @@ function reproducirAudio() {
   }
 }
 
+function preload() {
+  // No precargamos imágenes para mejorar la velocidad inicial
+}
+
+function cargarImagenesEnSegundoPlano() {
+  // Cargar imágenes una por una en segundo plano
+  for (let i = 0; i < 12; i++) {
+    imagenes[i] = null; // Inicializar array con nulls
+  }
+  
+  // Empezar a cargar las imágenes de forma asíncrona
+  for (let i = 1; i <= 12; i++) {
+    let img = loadImage('foto' + i + '.jpg', 
+      // Función de éxito
+      (imgCargada) => {
+        imagenes[i-1] = imgCargada;
+        imagenesListas++;
+        console.log('Imagen ' + i + ' cargada correctamente');
+        
+        if (imagenesListas >= 3) { // Solo necesitamos unas pocas para iniciar
+          cargando = false;
+        }
+      },
+      // Función de error
+      () => {
+        console.error('Error al cargar imagen ' + i);
+        imagenesListas++;
+        
+        if (imagenesListas >= 3) {
+          cargando = false;
+        }
+      }
+    );
+  }
+}
+
 function setup() {
   createCanvas(1200, 800);
   centroX = width / 2;
   centroY = height / 2;
   cargarAudio();
   textAlign(CENTER, CENTER);
+  cargarImagenesEnSegundoPlano();
 }
 
 function draw() {
@@ -94,7 +118,11 @@ function draw() {
   } else if (estadoActual === "ADVERTENCIA") {
     dibujarPantallaAdvertencia();
   } else if (estadoActual === "PREGUNTA") {
-    dibujarPantallaPregunta();
+    if (cargando && imagenesListas < 3) {
+      dibujarPantallaCarga();
+    } else {
+      dibujarPantallaPregunta();
+    }
   }
 }
 
@@ -202,12 +230,37 @@ function dibujarPantallaAdvertencia() {
   text("Bienvenido", botonX + botonAncho/2, botonY + botonAlto/2);
 }
 
+function dibujarPantallaCarga() {
+  background(240);
+  
+  // Texto de carga
+  textAlign(CENTER, CENTER);
+  textSize(24);
+  textStyle(NORMAL);
+  fill(0);
+  text("Loading...", centroX, centroY);
+  
+  // Puntos de carga animados
+  let numPuntos = (frameCount / 20) % 4;
+  let puntos = "";
+  for (let i = 0; i < numPuntos; i++) {
+    puntos += ".";
+  }
+  text(puntos, centroX + 80, centroY);
+}
+
 function dibujarPantallaPregunta() {
   background(240);
   
+  // Texto de la pregunta en la parte superior - AJUSTADO
+  textAlign(CENTER, CENTER);
+  textSize(30);
+  textStyle(BOLD);
+  fill(0);
+  text("¿Qué palabra describe mejor lo que sientes al ver esta fotografía?", centroX, height * 0.15);
+  
   // Verificar si hay imágenes cargadas
-  if (imagenes.length > 0 && indiceFotoActual < imagenes.length) {
-    // Mostrar la imagen actual
+  if (indiceFotoActual < imagenes.length) {
     let img = imagenes[indiceFotoActual];
     if (img && img.width > 0) { // Verificar que la imagen se cargó correctamente
       // Mostrar imagen centrada
@@ -221,16 +274,9 @@ function dibujarPantallaPregunta() {
     }
   }
   
-  // Texto de la pregunta en la parte superior
-  textAlign(CENTER, CENTER);
-  textSize(30);
-  textStyle(BOLD);
-  fill(0);
-  text("¿Qué palabra viene a tu mente?", centroX, height / 6);
-  
-  // Área de respuesta/botón continuar
+  // Área de respuesta/botón continuar - AJUSTADO HACIA ARRIBA
   let botonX = centroX - 200;
-  let botonY = height - (height / 8) - 50;
+  let botonY = height * 0.85; // Subido un poco
   let botonAncho = 400;
   let botonAlto = 50;
   
@@ -255,8 +301,11 @@ function dibujarPantallaPregunta() {
     text("Continuar", botonX + botonAncho/2, botonY + botonAlto/2);
   } else {
     // Dibujar el área de respuesta
-    fill(230);
+    fill(255); // Blanco para el área de respuesta
+    stroke(200); // Borde gris claro
+    strokeWeight(1);
     rect(botonX, botonY, botonAncho, botonAlto, 10);
+    noStroke();
     
     // Etiqueta "Respuesta:"
     textSize(20);
@@ -309,10 +358,10 @@ function mousePressed() {
       console.log("Cambiando a pantalla PREGUNTA");
     }
   }
-  else if (estadoActual === "PREGUNTA") {
+  else if (estadoActual === "PREGUNTA" && !cargando) {
     // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
-    let botonY = height - (height / 8) - 50;
+    let botonY = height * 0.85;
     let botonAncho = 400;
     let botonAlto = 50;
     
@@ -336,7 +385,7 @@ function mousePressed() {
 
 function keyPressed() {
   // Capturar texto en la pantalla PREGUNTA
-  if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado) {
+  if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
     if (keyCode === ENTER || keyCode === RETURN) {
       guardarRespuestaYAvanzar();
     } 
@@ -366,9 +415,10 @@ function guardarRespuestaYAvanzar() {
     // Avanzar a la siguiente imagen
     indiceFotoActual++;
     
-    // Verificar si hemos llegado al final
-    if (indiceFotoActual >= imagenes.length) {
+    // Verificar si hemos llegado al final (guardamos la respuesta pero no cambiamos a la siguiente imagen)
+    if (indiceFotoActual >= 12) {
       todoPreguntado = true;
+      indiceFotoActual = 11; // Mantener en la última imagen
       console.log("Todas las preguntas completadas");
     }
   }
