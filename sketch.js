@@ -16,7 +16,7 @@ let audioSource;
 let musicaIniciada = false;
 
 // Estado actual de la aplicación
-let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA, RESULTADOS
+let estadoActual = "INICIO"; // INICIO, ADVERTENCIA, PREGUNTA
 
 // Variables para pantalla de preguntas
 let imagenes = [];
@@ -27,14 +27,6 @@ let inputValor = "";
 let mensajeError = "";
 let mostrarError = false;
 let tiempoError = 0;
-
-// Variables para pantalla de resultados
-let palabrasVisuales = [];
-let posicionesPalabras = [];
-let arrastrando = false;
-let indicePalabraArrastrada = -1;
-let offsetArrastreX = 0;
-let offsetArrastreY = 0;
 
 // Cargar audio e imágenes
 function preload() {
@@ -105,8 +97,6 @@ function draw() {
     dibujarPantallaAdvertencia();
   } else if (estadoActual === "PREGUNTA") {
     dibujarPantallaPregunta();
-  } else if (estadoActual === "RESULTADOS") {
-    dibujarPantallaResultados();
   }
   
   // Manejar temporizador de mensajes de error
@@ -171,31 +161,33 @@ function dibujarPantallaAdvertencia() {
     if (alphaAdvertencia <= 50) aumentandoAdvertencia = true;
   }
   
-  // Dibujar el título con efecto de parpadeo
+  // Dibujar el título con efecto de parpadeo - AJUSTADO MÁS ABAJO
   textSize(80);
   textStyle(BOLD);
   fill(0, alphaAdvertencia);
-  text("ADVERTENCIA", centroX, 200);
+  text("ADVERTENCIA", centroX, 200); // Ajustado de 150 a 200
   
-  // Dibujar el texto principal
+  // Dibujar el texto principal - TODOS AJUSTADOS MÁS ABAJO
   textSize(32);
   textStyle(NORMAL);
   fill(0);
   
-  // Primer párrafo
-  text("La siguiente será una experiencia que necesita el uso de", centroX, 320);
-  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370);
-  text("una interacción totalmente inmersiva.", centroX, 420);
+  // Primer párrafo - AJUSTADO
+  text("La siguiente será una experiencia que necesita el uso de", centroX, 320); // Ajustado de 250 a 320
+  text("todos tus sentidos. Por favor, evita distracciones para vivir", centroX, 370); // Ajustado de 300 a 370 
+  text("una interacción totalmente inmersiva.", centroX, 420); // Ajustado de 350 a 420
   
-  // Segundo párrafo
-  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500);
-  text("pensamientos. Úsalas con precaución.", centroX, 550);
+  // Espacio entre párrafos
   
-  // Dibujar el botón
+  // Segundo párrafo - AJUSTADO
+  text("Recuerda: Las palabras son el reflejo de tus", centroX, 500); // Ajustado de 450 a 500
+  text("pensamientos. Úsalas con precaución.", centroX, 550); // Ajustado de 500 a 550
+  
+  // Dibujar el botón (modo CORNER para precisión) - AJUSTADO MÁS CERCA DEL TEXTO
   rectMode(CORNER);
   
   let botonX = centroX - 100;
-  let botonY = 620;
+  let botonY = 620; // Ajustado de 650 a 620 para estar más cerca del último párrafo
   let botonAncho = 200;
   let botonAlto = 60;
   
@@ -328,72 +320,6 @@ function dibujarPantallaPregunta() {
   text("Palabras ingresadas: " + palabrasUsuario.length, centroX, height * 0.9);
 }
 
-function dibujarPantallaResultados() {
-  // Fondo negro para el canvas de dibujo
-  background(20);
-  
-  // Título
-  textSize(36);
-  textStyle(BOLD);
-  fill(240);
-  text("REFLEJO: Tu poesía visual", centroX, 50);
-  
-  // Dibujar todas las palabras ingresadas
-  for (let i = 0; i < palabrasVisuales.length; i++) {
-    let palabra = palabrasVisuales[i];
-    let pos = posicionesPalabras[i];
-    
-    // Calcular distancia al centro para efectos visuales
-    let distanciaCentro = dist(pos.x, pos.y, centroX, centroY);
-    let maxDist = dist(0, 0, width/2, height/2);
-    let intensidad = map(distanciaCentro, 0, maxDist, 1, 0.5);
-    
-    // Calcular tamaño basado en la longitud de la palabra
-    let tamano = map(palabra.length, 1, 15, 60, 24);
-    
-    // Aplicar efectos visuales
-    textSize(tamano);
-    textStyle(NORMAL);
-    
-    // Color basado en posición (más blanco hacia el centro, más coloreado hacia afuera)
-    let r = map(pos.x, 0, width, 150, 255);
-    let g = map(pos.y, 0, height, 150, 255);
-    let b = map(distanciaCentro, 0, maxDist, 255, 150);
-    fill(r, g, b, 255 * intensidad);
-    
-    // Dibujar la palabra
-    text(palabra, pos.x, pos.y);
-  }
-  
-  // Instrucciones en la parte inferior
-  fill(0, 0, 0, 200);
-  rectMode(CORNER);
-  rect(0, height - 80, width, 80);
-  
-  fill(255);
-  textSize(18);
-  textStyle(NORMAL);
-  text("Haz clic y arrastra las palabras para crear tu composición visual", centroX, height - 55);
-  text("Presiona 'S' para guardar tu creación como imagen", centroX, height - 25);
-  
-  // Botón para volver al inicio
-  let botonX = 50;
-  let botonY = 20;
-  let botonAncho = 150;
-  let botonAlto = 40;
-  
-  let sobreBotonReinicio = mouseX > botonX && mouseX < botonX + botonAncho && 
-                          mouseY > botonY && mouseY < botonY + botonAlto;
-  
-  rectMode(CORNER);
-  fill(sobreBotonReinicio ? 80 : 50);
-  rect(botonX, botonY, botonAncho, botonAlto, 8);
-  
-  fill(255);
-  textSize(16);
-  text("Volver al inicio", botonX + botonAncho/2, botonY + botonAlto/2);
-}
-
 function mousePressed() {
   // Activar audio con el clic
   if (!musicaIniciada) {
@@ -448,55 +374,6 @@ function mousePressed() {
       confirmarPalabra();
     }
   }
-  else if (estadoActual === "RESULTADOS") {
-    // Verificar clic en botón de reinicio
-    let botonX = 50;
-    let botonY = 20;
-    let botonAncho = 150;
-    let botonAlto = 40;
-    
-    if (mouseX > botonX && mouseX < botonX + botonAncho && 
-        mouseY > botonY && mouseY < botonY + botonAlto) {
-      resetearAplicacion();
-      estadoActual = "INICIO";
-      console.log("Volviendo a INICIO");
-      return;
-    }
-    
-    // Verificar clic en alguna palabra para arrastrar
-    for (let i = 0; i < palabrasVisuales.length; i++) {
-      let palabra = palabrasVisuales[i];
-      let pos = posicionesPalabras[i];
-      let tamano = map(palabra.length, 1, 15, 60, 24);
-      
-      // Radio de detección basado en el tamaño de la palabra
-      let radioDeteccion = tamano * 0.8;
-      
-      // Verificar si el clic está dentro del radio de la palabra
-      if (dist(mouseX, mouseY, pos.x, pos.y) < radioDeteccion) {
-        arrastrando = true;
-        indicePalabraArrastrada = i;
-        offsetArrastreX = pos.x - mouseX;
-        offsetArrastreY = pos.y - mouseY;
-        break;
-      }
-    }
-  }
-}
-
-function mouseDragged() {
-  if (estadoActual === "RESULTADOS" && arrastrando && indicePalabraArrastrada >= 0) {
-    // Actualizar posición de la palabra arrastrada
-    posicionesPalabras[indicePalabraArrastrada].x = mouseX + offsetArrastreX;
-    posicionesPalabras[indicePalabraArrastrada].y = mouseY + offsetArrastreY;
-  }
-}
-
-function mouseReleased() {
-  if (estadoActual === "RESULTADOS") {
-    arrastrando = false;
-    indicePalabraArrastrada = -1;
-  }
 }
 
 function keyPressed() {
@@ -518,13 +395,6 @@ function keyPressed() {
       }
     }
   }
-  
-  // Guardar imagen en pantalla RESULTADOS
-  if (estadoActual === "RESULTADOS" && (key === 's' || key === 'S')) {
-    let timestamp = year() + nf(month(), 2) + nf(day(), 2) + '_' + nf(hour(), 2) + nf(minute(), 2) + nf(second(), 2);
-    saveCanvas('REFLEJO_' + timestamp, 'png');
-    console.log("Imagen guardada");
-  }
 }
 
 function confirmarPalabra() {
@@ -543,56 +413,17 @@ function confirmarPalabra() {
   
   console.log("Palabra guardada: " + palabrasUsuario[palabrasUsuario.length - 1]);
   
-  // Avanzar a la siguiente imagen o a RESULTADOS si completamos todas
+  // Avanzar a la siguiente imagen
   indiceFotoActual++;
   
-  // Si hemos llegado al final de las imágenes o tenemos suficientes palabras
-  if (indiceFotoActual >= imagenes.length || palabrasUsuario.length >= 12) {
-    prepararPantallaResultados();
-    estadoActual = "RESULTADOS";
-    console.log("Cambiando a pantalla RESULTADOS");
+  // Si hemos llegado al final de las imágenes, volver a la primera
+  if (indiceFotoActual >= imagenes.length) {
+    indiceFotoActual = 0;
+    console.log("Volviendo a la primera imagen");
   }
-}
-
-function prepararPantallaResultados() {
-  palabrasVisuales = [...palabrasUsuario];
-  
-  // Crear posiciones iniciales aleatorias para cada palabra
-  for (let i = 0; i < palabrasVisuales.length; i++) {
-    // Posicionar las palabras en lugares aleatorios dentro del canvas
-    // pero evitar los bordes y la parte inferior donde están las instrucciones
-    let posX = random(width * 0.1, width * 0.9);
-    let posY = random(height * 0.15, height * 0.85);
-    
-    posicionesPalabras.push(createVector(posX, posY));
-  }
-  
-  console.log("Pantalla RESULTADOS preparada con " + palabrasVisuales.length + " palabras");
-}
-
-function resetearAplicacion() {
-  // Reiniciar variables para volver al inicio
-  indiceFotoActual = 0;
-  palabrasUsuario = [];
-  inputValor = "";
-  palabrasVisuales = [];
-  posicionesPalabras = [];
-  arrastrando = false;
-  indicePalabraArrastrada = -1;
-  mostrarError = false;
 }
 
 function touchStarted() {
   mousePressed();
-  return false;
-}
-
-function touchMoved() {
-  mouseDragged();
-  return false;
-}
-
-function touchEnded() {
-  mouseReleased();
   return false;
 }
