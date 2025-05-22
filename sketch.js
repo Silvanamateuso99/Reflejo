@@ -400,6 +400,7 @@ function dibujarPantallaPregunta() {
   }
 }
 
+// FUNCIÓN MODIFICADA para pantalla de resultados - limpiar lienzo al iniciar
 function dibujarPantallaResultados() {
   background(255);
   
@@ -616,7 +617,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN CORREGIDA para dibujar en la posición exacta del cursor
+// FUNCIÓN REVISADA para asegurar que el dibujo aparezca en el área visible
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -630,6 +631,13 @@ function dibujarPalabra(x, y) {
   
   console.log("Dibujando palabra:", palabra, "en", x, y); // Debug info
   
+  // IMPORTANTE: Verificar que estamos en el área visible (esta es la clave)
+  // y ajustar coordenadas si es necesario
+  let yVisible = y;
+  if (yVisible < 100) { // Si está por encima del área visible
+    yVisible = 100 + Math.random() * 100; // Mover hacia área visible
+  }
+  
   // Configuración para dibujar texto centrado en la posición del mouse
   textAlign(CENTER, CENTER);
   textSize(tamanoTexto);
@@ -637,14 +645,14 @@ function dibujarPalabra(x, y) {
   fill(colorTexto);
   
   // Dibujar directamente en el canvas principal (pantalla)
-  text(palabra, x, y);
+  text(palabra, x, yVisible);
   
   // Configurar y dibujar en el lienzo secundario para guardar
   lienzo.textAlign(CENTER, CENTER);
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
-  lienzo.text(palabra, x, y);
+  lienzo.text(palabra, x, yVisible);
 }
 
 function guardarCreacion() {
@@ -654,25 +662,24 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN ACTUALIZADA para las interacciones del panel
+// FUNCIÓN ACTUALIZADA para iniciar el dibujo en una posición visible
 function mousePressed() {
-  // Activar audio con el clic
+  // Parte no modificada para audio y estados anteriores
   if (!musicaIniciada) {
     if (audioContext && audioContext.state !== 'running') {
       audioContext.resume().then(() => reproducirAudio());
     } else {
       reproducirAudio();
     }
-    return; // No cambiar de pantalla en el primer clic, solo activar audio
+    return;
   }
   
-  // Manejar interacciones según el estado actual
   if (estadoActual === "INICIO") {
     estadoActual = "ADVERTENCIA";
     console.log("Cambiando a pantalla ADVERTENCIA");
   } 
   else if (estadoActual === "ADVERTENCIA") {
-    // Verificar clic en botón Bienvenido
+    // Código no modificado para ADVERTENCIA
     let botonX = centroX - 100;
     let botonY = 620;
     let botonAncho = 200;
@@ -685,12 +692,11 @@ function mousePressed() {
     }
   }
   else if (estadoActual === "PREGUNTA" && !cargando) {
-    // Calcular la posición del botón/campo de respuesta
+    // Código no modificado para PREGUNTA
     let altoImagen = 400;
     let imagenYInferior = centroY + altoImagen/2;
     let respuestaY = imagenYInferior + 40;
     
-    // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
     let botonY = respuestaY;
     let botonAncho = 400;
@@ -700,19 +706,21 @@ function mousePressed() {
         mouseY > botonY && mouseY < botonY + botonAlto) {
       
       if (todoPreguntado) {
-        // Acción del botón Continuar - Cambiar a pantalla RESULTADOS
         estadoActual = "RESULTADOS";
         console.log("Cambiando a pantalla RESULTADOS");
-        prepararPalabras(); // Asegurarnos de que las palabras están listas
+        prepararPalabras();
+        
+        // IMPORTANTE: Inicializar el lienzo con un fondo blanco
+        // para asegurar que empezamos con un lienzo limpio
+        lienzo.background(255);
       } else {
-        // Activar área de respuesta
         inputActivo = true;
       }
     } else {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - Coordenadas actualizadas para el nuevo diseño
+  // Estado RESULTADOS
   else if (estadoActual === "RESULTADOS") {
     // Verificar si se hace clic en el panel oculto para mostrarlo
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
@@ -725,10 +733,16 @@ function mousePressed() {
       dibujando = true;
       
       // Guardar posición exacta del clic para dibujar
-      ultimaPosicion = createVector(mouseX, mouseY);
+      // Asegurar que la coordenada Y esté en el área visible
+      let yVisible = mouseY;
+      if (yVisible < 100) {
+        yVisible = 100 + Math.random() * 100; // Mover hacia área visible
+      }
       
-      // Dibujar la primera palabra exactamente en la posición del clic
-      dibujarPalabra(mouseX, mouseY);
+      ultimaPosicion = createVector(mouseX, yVisible);
+      
+      // Dibujar la primera palabra en la posición visible
+      dibujarPalabra(mouseX, yVisible);
       return;
     }
     
@@ -801,23 +815,29 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MODIFICADA para asegurar que las palabras se dibujen donde se arrastra el mouse
+// FUNCIÓN MODIFICADA para asegurar que el arrastre dibuje en el área visible
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
     // Verificar que estamos en una zona válida para dibujar
     let zonaValida = mostrarControles ? mouseX > 270 : mouseX > 50;
     
     if (zonaValida) {
+      // Ajustar coordenada Y si está fuera del área visible
+      let yVisible = mouseY;
+      if (yVisible < 100) {
+        yVisible = 100 + Math.random() * 100; // Mover hacia área visible
+      }
+      
       // Calcular la distancia desde la última posición
-      let posActual = createVector(mouseX, mouseY);
+      let posActual = createVector(mouseX, yVisible);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Usar la posición exacta del cursor (esta es la clave)
-        dibujarPalabra(mouseX, mouseY);
+        // Dibujar la palabra en la posición visible
+        dibujarPalabra(mouseX, yVisible);
         
-        // Actualizar la última posición para el próximo cálculo de distancia
+        // Actualizar la última posición
         ultimaPosicion = posActual.copy();
       }
     }
@@ -873,6 +893,12 @@ function guardarRespuestaYAvanzar() {
       console.log("Todas las preguntas completadas");
     }
   }
+}
+
+// Función para reiniciar el lienzo de dibujo
+function reiniciarLienzo() {
+  lienzo.background(255);
+  console.log("Lienzo reiniciado");
 }
 
 function touchStarted() {
