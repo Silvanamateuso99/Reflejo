@@ -574,25 +574,26 @@ function colorMuestra(x, y, c) {
   }
 }
 
+// FUNCIÓN CORREGIDA para mostrar la flecha del panel a la misma altura que el panel
 function dibujarFlechaPanel() {
-  // Fondo para la flecha
-  fill(240, 240, 240, 220);
+  // Fondo para la flecha - ahora a la misma altura que el panel principal
+  fill(240);
   stroke(200);
-  rect(0, 0, 50, 80, 0, 10, 10, 0);
+  rect(0, 100, 50, 80, 0, 10, 10, 0); // Y=100 para que coincida con el panel
   
   // Dibujar flecha simple
   fill(40);
   noStroke();
   // Triángulo (flecha)
-  triangle(15, 20, 35, 40, 15, 60);
+  triangle(15, 120, 35, 140, 15, 160); // Ajustado en Y
   // Rectángulo (base)
-  rect(5, 35, 10, 10);
+  rect(5, 135, 10, 10); // Ajustado en Y
   
   // Texto pequeño debajo
   fill(40);
   textAlign(CENTER);
   textSize(10);
-  text("Panel", 25, 75);
+  text("Panel", 25, 175); // Ajustado en Y
 }
 
 function mostrarMensajeGuardado() {
@@ -615,7 +616,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN CORREGIDA para el problema del dibujo
+// FUNCIÓN CORREGIDA para dibujar en la posición exacta del cursor
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -629,21 +630,20 @@ function dibujarPalabra(x, y) {
   
   console.log("Dibujando palabra:", palabra, "en", x, y); // Debug info
   
-  // IMPORTANTE: Dibujar primero directamente en el lienzo principal
-  push();
-  fill(colorTexto);
+  // Configuración para dibujar texto centrado en la posición del mouse
+  textAlign(CENTER, CENTER);
   textSize(tamanoTexto);
   textFont(fuentes[fuenteSeleccionada]);
-  textAlign(CENTER, CENTER);
-  text(palabra, x, y);
-  pop();
+  fill(colorTexto);
   
-  // Ahora dibujar en el lienzo secundario para guardar
-  // Este es un paso clave para asegurar que aparezca en ambos lugares
-  lienzo.fill(colorTexto);
+  // Dibujar directamente en el canvas principal (pantalla)
+  text(palabra, x, y);
+  
+  // Configurar y dibujar en el lienzo secundario para guardar
+  lienzo.textAlign(CENTER, CENTER);
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
-  lienzo.textAlign(CENTER, CENTER);
+  lienzo.fill(colorTexto);
   lienzo.text(palabra, x, y);
 }
 
@@ -715,7 +715,7 @@ function mousePressed() {
   // Estado RESULTADOS - Coordenadas actualizadas para el nuevo diseño
   else if (estadoActual === "RESULTADOS") {
     // Verificar si se hace clic en el panel oculto para mostrarlo
-    if (!mostrarControles && mouseX <= 50 && mouseY <= 80) {
+    if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
       mostrarControles = true;
       return;
     }
@@ -723,10 +723,11 @@ function mousePressed() {
     // Comenzar a dibujar si está fuera del panel
     if ((mostrarControles && mouseX > 270) || (!mostrarControles && mouseX > 50)) {
       dibujando = true;
+      
       // Guardar posición exacta del clic para dibujar
       ultimaPosicion = createVector(mouseX, mouseY);
       
-      // Dibujar la primera palabra en la posición inicial exacta del clic
+      // Dibujar la primera palabra exactamente en la posición del clic
       dibujarPalabra(mouseX, mouseY);
       return;
     }
@@ -811,13 +812,11 @@ function mouseDragged() {
       let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
-      // Mostrar información de depuración
-      console.log("Arrastrando en:", mouseX, mouseY, "Distancia:", distancia);
-      
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Dibujar palabra exactamente en la posición actual del mouse
+        // Usar la posición exacta del cursor (esta es la clave)
         dibujarPalabra(mouseX, mouseY);
+        
         // Actualizar la última posición para el próximo cálculo de distancia
         ultimaPosicion = posActual.copy();
       }
