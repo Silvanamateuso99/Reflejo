@@ -189,29 +189,6 @@ function verificarCanvas() {
   }
 }
 
-// NUEVA FUNCIÓN - Corregir coordenadas del mouse
-function obtenerCoordenadaCorrecta() {
-  let canvas = document.querySelector('canvas');
-  if (canvas) {
-    let rect = canvas.getBoundingClientRect();
-    let scaleX = canvas.width / rect.width;
-    let scaleY = canvas.height / rect.height;
-    
-    // Calcular coordenadas corregidas
-    let mouseXCorregido = mouseX * scaleX;
-    let mouseYCorregido = mouseY * scaleY;
-    
-    console.log("Corrección de coordenadas:", {
-      mouseOriginal: {x: mouseX, y: mouseY},
-      mouseCorregido: {x: mouseXCorregido, y: mouseYCorregido},
-      escala: {x: scaleX, y: scaleY}
-    });
-    
-    return {x: mouseXCorregido, y: mouseYCorregido};
-  }
-  return {x: mouseX, y: mouseY};
-}
-
 function draw() {
   if (estadoActual === "INICIO") {
     dibujarPantallaInicio();
@@ -724,7 +701,7 @@ function estaEnAreaDibujable(x, y) {
   return resultado;
 }
 
-// FUNCIÓN MOUSEpressed CORREGIDA
+// FUNCIÓN MOUSEPRESSED SIMPLIFICADA - Usar coordenadas directas
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -778,35 +755,30 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - CON COORDENADAS CORREGIDAS
+  // Estado RESULTADOS - USAR COORDENADAS DIRECTAS
   else if (estadoActual === "RESULTADOS") {
-    // OBTENER COORDENADAS CORREGIDAS
-    let coordCorrectas = obtenerCoordenadaCorrecta();
-    let mouseXReal = coordCorrectas.x;
-    let mouseYReal = coordCorrectas.y;
-    
-    console.log("=== MOUSE PRESS EN RESULTADOS (CORREGIDO) ===");
-    console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse corregido:", mouseXReal, mouseYReal);
+    console.log("=== MOUSE PRESS EN RESULTADOS (DIRECTO) ===");
+    console.log("mouseX:", mouseX, "mouseY:", mouseY);
+    console.log("width:", width, "height:", height);
     
     verificarCanvas();
     
-    // Verificar panel oculto (usar coordenadas originales para UI)
+    // Verificar panel oculto
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
       mostrarControles = true;
       return;
     }
     
-    // USAR COORDENADAS CORREGIDAS PARA DIBUJO
-    if (mouseXReal > 280) {
-      console.log("*** DIBUJANDO CON COORDENADAS CORREGIDAS ***");
+    // USAR COORDENADAS DIRECTAS DEL MOUSE - SIN CORRECCIÓN
+    if (mouseX > 280) {
+      console.log("*** DIBUJANDO CON COORDENADAS DIRECTAS DEL MOUSE ***");
       dibujando = true;
-      ultimaPosicion = createVector(mouseXReal, mouseYReal);
-      dibujarPalabra(mouseXReal, mouseYReal);
+      ultimaPosicion = createVector(mouseX, mouseY);
+      dibujarPalabra(mouseX, mouseY);
       return;
     }
     
-    // Interacciones con el panel (usar coordenadas originales)
+    // Interacciones con el panel
     if (mostrarControles && mouseX < 270) {
       let baseY = 310;
       let espaciado = 45;
@@ -866,26 +838,20 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED CORREGIDA
+// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA - Usar coordenadas directas
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    // OBTENER COORDENADAS CORREGIDAS
-    let coordCorrectas = obtenerCoordenadaCorrecta();
-    let mouseXReal = coordCorrectas.x;
-    let mouseYReal = coordCorrectas.y;
+    console.log("=== MOUSE DRAG (DIRECTO) ===");
+    console.log("mouseX:", mouseX, "mouseY:", mouseY);
     
-    console.log("=== MOUSE DRAG (CORREGIDO) ===");
-    console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse corregido:", mouseXReal, mouseYReal);
-    
-    // USAR COORDENADAS CORREGIDAS
-    if (mouseXReal > 280) {
-      let posActual = createVector(mouseXReal, mouseYReal);
+    // USAR COORDENADAS DIRECTAS DEL MOUSE - SIN CORRECCIÓN
+    if (mouseX > 280) {
+      let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       if (distancia >= distanciaEntrePalabras) {
-        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS CORREGIDAS ***");
-        dibujarPalabra(mouseXReal, mouseYReal);
+        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS DIRECTAS ***");
+        dibujarPalabra(mouseX, mouseY);
         ultimaPosicion = posActual.copy();
       }
     }
@@ -898,7 +864,7 @@ function mouseReleased() {
   }
 }
 
-// FUNCIÓN KEYPRESSED CORREGIDA (para debug con D)
+// FUNCIÓN KEYPRESSED SIMPLIFICADA - Debug directo
 function keyPressed() {
   // Capturar texto en pantalla PREGUNTA (sin cambios)
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
@@ -922,23 +888,20 @@ function keyPressed() {
     guardarCreacion();
   }
   
-  // DEBUG CORREGIDO: Información detallada con tecla D
+  // DEBUG SIMPLE: Información con tecla D
   if (key === 'd' || key === 'D') {
-    console.log("=== DEBUG INFO ===");
+    console.log("=== DEBUG INFO SIMPLE ===");
     console.log("Estado actual:", estadoActual);
-    
-    let coordCorrectas = obtenerCoordenadaCorrecta();
-    console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse corregido:", coordCorrectas.x, coordCorrectas.y);
+    console.log("Mouse posición DIRECTA:", mouseX, mouseY);
     console.log("Canvas size:", width, height);
     console.log("Panel visible:", mostrarControles);
     verificarCanvas();
     
-    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA CON COORDENADAS CORREGIDAS
+    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA - COORDENADAS DIRECTAS
     if (estadoActual === "RESULTADOS") {
-      console.log("*** FORZANDO DIBUJO EN EL CENTRO PARA PRUEBA ***");
-      let centroTestX = 600; // Centro del área de dibujo (coordenadas reales del canvas)
-      let centroTestY = 400; // Centro vertical (coordenadas reales del canvas)
+      console.log("*** FORZANDO DIBUJO EN EL CENTRO CON COORDENADAS DIRECTAS ***");
+      let centroTestX = 600;
+      let centroTestY = 400;
       dibujarPalabra(centroTestX, centroTestY);
     }
   }
