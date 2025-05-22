@@ -121,8 +121,7 @@ function cargarImagenesEnSegundoPlano() {
 }
 
 function setup() {
-  // Reducir el tamaño del canvas para que se vea completo
-  createCanvas(800, 600);
+  createCanvas(1200, 800);
   centroX = width / 2;
   centroY = height / 2;
   cargarAudio();
@@ -133,7 +132,7 @@ function setup() {
   colorTexto = color(0); // Negro por defecto
   ultimaPosicion = createVector(0, 0);
   
-  // Crear lienzo para dibujo con el mismo tamaño del canvas principal
+  // Crear lienzo para dibujo
   lienzo = createGraphics(width, height);
   lienzo.background(255);
   
@@ -421,150 +420,152 @@ function dibujarPantallaResultados() {
 }
 
 function dibujarPanelLateral() {
-  // Panel izquierdo (reducido para que quepa mejor)
+  // Panel izquierdo - mantenemos el mismo ancho pero reorganizamos el contenido
   fill(240);
   stroke(200);
-  rect(10, 10, 200, height - 20, 10);
+  rect(10, 10, 250, height - 20, 10);
   
-  // Título
+  // Título modificado
   fill(0);
   textFont('Verdana');
-  textSize(20); // Texto más pequeño
+  textSize(24);
   textStyle(BOLD);
   textAlign(CENTER, TOP);
-  text("¡A Dibujar!", 110, 20);
+  text("¡A Dibujar!", 135, 15);
   
-  // Instrucciones
-  textSize(12); // Texto más pequeño
+  // Instrucciones - más compacto
+  textFont('Verdana');
+  textSize(12);
   textStyle(NORMAL);
   textAlign(LEFT, TOP);
   fill(80);
-  text("Mantén presionado el botón del mouse y mueve el cursor para dibujar con tus palabras.", 20, 50, 180, 80);
+  text("Mantén presionado el botón del mouse y mueve el cursor para dibujar con tus palabras.", 20, 45, 230, 60);
   
-  // Recuadro de palabras (más pequeño)
+  // Recuadro de palabras - más compacto
   fill(255);
   stroke(200);
-  rect(20, 130, 180, 120, 5);
+  rect(20, 105, 230, 130, 5);
   
   // Mostrar palabras disponibles
+  textFont('Verdana');
   textSize(14);
   textAlign(LEFT, TOP);
   fill(0);
-  let y = 140;
+  let y = 115;
   let contador = 0;
   
   for (let palabra of palabrasDisponibles) {
     text(palabra, 30, y);
-    y += 22; // Espaciado reducido
+    y += 20; // Espaciado reducido
     contador++;
     if (contador >= 5) break; // Mostrar solo las primeras 5
   }
   
   if (contador === 0) {
     fill(100);
-    text("No hay palabras disponibles", 30, 140);
+    text("No hay palabras disponibles", 30, 120);
   }
   
-  // Controles de formato (ajustados para el nuevo tamaño)
+  // Controles de formato - movidos hacia arriba
   fill(0);
+  textFont('Verdana');
   textSize(14);
   textAlign(LEFT, CENTER);
-  text("Tipografía:", 20, 270);
+  text("Tipografía:", 20, 250);
   
   // Selector de fuente
   fill(255);
   stroke(200);
-  rect(100, 260, 100, 25, 5);
+  rect(120, 240, 130, 25, 5);
   fill(0);
   noStroke();
   textAlign(CENTER, CENTER);
-  text(fuentes[fuenteSeleccionada], 150, 272);
+  text(fuentes[fuenteSeleccionada], 185, 252);
   
   // Tamaño de texto
   textAlign(LEFT, CENTER);
-  text("Tamaño:", 20, 300);
+  text("Tamaño:", 20, 285);
   
   // Botones de tamaño
   fill(40);
-  rect(100, 290, 30, 25, 5); // Botón -
-  rect(140, 290, 30, 25, 5); // Botón +
+  rect(120, 275, 40, 25, 5); // Botón -
+  rect(170, 275, 40, 25, 5); // Botón +
   fill(255);
   textAlign(CENTER, CENTER);
-  text("-", 115, 302);
-  text("+", 155, 302);
+  text("-", 140, 287);
+  text("+", 190, 287);
   fill(0);
-  text(tamanoTexto, 180, 302);
+  text(tamanoTexto, 220, 287);
   
   // Control de densidad de palabras
   textAlign(LEFT, CENTER);
-  text("Densidad:", 20, 330);
+  text("Densidad:", 20, 320);
   fill(40);
-  rect(100, 320, 30, 25, 5); // Botón -
-  rect(140, 320, 30, 25, 5); // Botón +
+  rect(120, 310, 40, 25, 5); // Botón -
+  rect(170, 310, 40, 25, 5); // Botón +
   fill(255);
   textAlign(CENTER, CENTER);
-  text("-", 115, 332);
-  text("+", 155, 332);
+  text("-", 140, 322);
+  text("+", 190, 322);
   fill(0);
   // Mostrar densidad como valor invertido (mayor número = mayor densidad)
   let densidadMostrada = int(map(distanciaEntrePalabras, 10, 50, 10, 1));
-  text(densidadMostrada, 180, 332);
+  text(densidadMostrada, 220, 322);
   
   // Color
   textAlign(LEFT, CENTER);
   fill(0);
-  text("Color:", 20, 360);
+  text("Color:", 20, 355);
   
-  // Muestras de color (más pequeñas y ajustadas)
-  colorMuestra(100, 350, color(0));          // Negro
-  colorMuestra(135, 350, color(255, 0, 0));  // Rojo
-  colorMuestra(170, 350, color(0, 0, 255));  // Azul
-  colorMuestra(100, 385, color(0, 128, 0));  // Verde
-  colorMuestra(135, 385, color(128, 0, 128));// Morado
-  colorMuestra(170, 385, color(255, 165, 0));// Naranja
+  // Muestras de color
+  colorMuestra(120, 345, color(0));          // Negro
+  colorMuestra(160, 345, color(255, 0, 0));  // Rojo
+  colorMuestra(200, 345, color(0, 0, 255));  // Azul
+  colorMuestra(120, 385, color(0, 128, 0));  // Verde
+  colorMuestra(160, 385, color(128, 0, 128));// Morado
+  colorMuestra(200, 385, color(255, 165, 0));// Naranja
   
   // Instrucciones de dibujo
   fill(0);
   textAlign(LEFT, TOP);
-  textSize(12);
-  textStyle(BOLD);
-  text("Cómo usar:", 20, 420);
-  textStyle(NORMAL);
-  textSize(10);
-  text("1. Presiona y arrastra para dibujar con palabras\n2. Ajusta la densidad, estilo y color\n3. Realiza múltiples trazos\n4. Guarda tu creación", 20, 440, 180, 100);
+  textFont('Verdana Bold', 14);
+  text("Cómo usar:", 20, 425);
+  textFont('Verdana', 12);
+  text("1. Presiona y arrastra para dibujar con palabras\n2. Ajusta la densidad, estilo y color\n3. Realiza múltiples trazos\n4. Guarda tu creación", 20, 445, 230, 100);
+  
+  // Espacio entre instrucciones y botones
+  let espacioRestante = height - 505;
+  let posicionBotones = 505 + espacioRestante / 2 - 50;
   
   // Botón para guardar
   fill(20);
-  rect(20, height - 90, 180, 35, 5);
+  rect(20, posicionBotones, 230, 35, 5);
   fill(255);
-  textSize(14);
   textAlign(CENTER, CENTER);
-  text("Guardar Mi Creación", 110, height - 72);
+  text("Guardar Mi Creación", 135, posicionBotones + 17);
   
   // Botón para ocultar controles
   fill(150);
-  rect(20, height - 45, 180, 25, 5);
+  rect(20, posicionBotones + 45, 230, 30, 5);
   fill(255);
   textAlign(CENTER, CENTER);
-  text("Ocultar Panel", 110, height - 32);
+  text("Ocultar Panel", 135, posicionBotones + 45 + 15);
   
   // Flecha indicando ocultar
   fill(255);
-  triangle(45, height - 32, 35, height - 37, 35, height - 27);
+  triangle(50, posicionBotones + 45 + 15, 40, posicionBotones + 45 + 10, 40, posicionBotones + 45 + 20);
 }
 
 function colorMuestra(x, y, c) {
   stroke(0);
   fill(c);
-  rect(x, y, 25, 25, 2); // Tamaño reducido
-  
-  // Marcar el color actualmente seleccionado
+  rect(x, y, 30, 30);
   if (red(c) === red(colorTexto) && 
       green(c) === green(colorTexto) && 
       blue(c) === blue(colorTexto)) {
     noFill();
     stroke(255, 0, 0);
-    rect(x-2, y-2, 29, 29, 4);
+    rect(x-2, y-2, 34, 34);
   }
 }
 
@@ -637,16 +638,14 @@ function dibujarPalabra(x, y) {
   lienzo.pop();
   
   // SOLUCIÓN: También dibujamos directamente en el canvas principal
-  // para visualización inmediata (solo si estamos en estado RESULTADOS)
-  if (estadoActual === "RESULTADOS") {
-    push();
-    textFont(fuentes[fuenteSeleccionada]);
-    textSize(tamanoTexto);
-    textAlign(CENTER, CENTER);
-    fill(colorTexto);
-    text(palabra, x, y);
-    pop();
-  }
+  // para visualización inmediata
+  push();
+  textFont(fuentes[fuenteSeleccionada]);
+  textSize(tamanoTexto);
+  textAlign(CENTER, CENTER);
+  fill(colorTexto);
+  text(palabra, x, y);
+  pop();
 }
 
 function guardarCreacion() {
@@ -679,11 +678,6 @@ function mousePressed() {
     let botonAncho = 200;
     let botonAlto = 60;
     
-    // Ajustar para el nuevo tamaño del canvas
-    if (botonY >= height) {
-      botonY = height - 70;
-    }
-    
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
       estadoActual = "PREGUNTA";
@@ -692,14 +686,14 @@ function mousePressed() {
   }
   else if (estadoActual === "PREGUNTA" && !cargando) {
     // Calcular la posición del botón/campo de respuesta
-    let altoImagen = 300; // Reducido para el nuevo tamaño
+    let altoImagen = 400;
     let imagenYInferior = centroY + altoImagen/2;
     let respuestaY = imagenYInferior + 40;
     
     // Verificar clic en área de respuesta o botón continuar
-    let botonX = centroX - 150; // Reducido para el nuevo tamaño
+    let botonX = centroX - 200;
     let botonY = respuestaY;
-    let botonAncho = 300; // Reducido para el nuevo tamaño
+    let botonAncho = 400;
     let botonAlto = 50;
     
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
@@ -726,8 +720,7 @@ function mousePressed() {
     }
     
     // Comenzar a dibujar si está fuera del panel
-    // Ajustado para el nuevo tamaño del panel
-    if ((mostrarControles && mouseX > 220) || (!mostrarControles && mouseX > 50)) {
+    if ((mostrarControles && mouseX > 270) || (!mostrarControles && mouseX > 50)) {
       dibujando = true;
       ultimaPosicion = createVector(mouseX, mouseY);
       
@@ -736,57 +729,61 @@ function mousePressed() {
       return;
     }
     
-    // Interacciones con el panel de control (ajustados para nuevas dimensiones)
+    // Interacciones con el panel de control (ajustados para nuevas posiciones)
     if (mostrarControles) {
       // Selector de fuente
-      if (mouseX >= 100 && mouseX <= 200 && mouseY >= 260 && mouseY <= 285) {
+      if (mouseX >= 120 && mouseX <= 250 && mouseY >= 240 && mouseY <= 265) {
         fuenteSeleccionada = (fuenteSeleccionada + 1) % fuentes.length;
         return;
       }
       
       // Botones de tamaño
-      if (mouseX >= 100 && mouseX <= 130 && mouseY >= 290 && mouseY <= 315) {
+      if (mouseX >= 120 && mouseX <= 160 && mouseY >= 275 && mouseY <= 300) {
         tamanoTexto = max(10, tamanoTexto - 2); // Botón -
         return;
       }
       
-      if (mouseX >= 140 && mouseX <= 170 && mouseY >= 290 && mouseY <= 315) {
+      if (mouseX >= 170 && mouseX <= 210 && mouseY >= 275 && mouseY <= 300) {
         tamanoTexto = min(72, tamanoTexto + 2); // Botón +
         return;
       }
       
       // Botones de densidad
-      if (mouseX >= 100 && mouseX <= 130 && mouseY >= 320 && mouseY <= 345) {
+      if (mouseX >= 120 && mouseX <= 160 && mouseY >= 310 && mouseY <= 335) {
         distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5); // Botón - (menos densidad)
         return;
       }
       
-      if (mouseX >= 140 && mouseX <= 170 && mouseY >= 320 && mouseY <= 345) {
+      if (mouseX >= 170 && mouseX <= 210 && mouseY >= 310 && mouseY <= 335) {
         distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5); // Botón + (más densidad)
         return;
       }
       
       // Selección de color (ajustado a nuevas posiciones)
-      if (mouseY >= 350 && mouseY <= 375) {
-        if (mouseX >= 100 && mouseX <= 125) colorTexto = color(0);
-        if (mouseX >= 135 && mouseX <= 160) colorTexto = color(255, 0, 0);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);
+      if (mouseY >= 345 && mouseY <= 375) {
+        if (mouseX >= 120 && mouseX <= 150) colorTexto = color(0);
+        if (mouseX >= 160 && mouseX <= 190) colorTexto = color(255, 0, 0);
+        if (mouseX >= 200 && mouseX <= 230) colorTexto = color(0, 0, 255);
       }
       
-      if (mouseY >= 385 && mouseY <= 410) {
-        if (mouseX >= 100 && mouseX <= 125) colorTexto = color(0, 128, 0);
-        if (mouseX >= 135 && mouseX <= 160) colorTexto = color(128, 0, 128);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);
+      if (mouseY >= 385 && mouseY <= 415) {
+        if (mouseX >= 120 && mouseX <= 150) colorTexto = color(0, 128, 0);
+        if (mouseX >= 160 && mouseX <= 190) colorTexto = color(128, 0, 128);
+        if (mouseX >= 200 && mouseX <= 230) colorTexto = color(255, 165, 0);
       }
+      
+      // Botones de guardar y ocultar panel - calculados dinámicamente
+      let espacioRestante = height - 505;
+      let posicionBotones = 505 + espacioRestante / 2 - 50;
       
       // Botón para guardar
-      if (mouseX >= 20 && mouseX <= 200 && mouseY >= height - 90 && mouseY <= height - 55) {
+      if (mouseX >= 20 && mouseX <= 250 && mouseY >= posicionBotones && mouseY <= posicionBotones + 35) {
         guardarCreacion();
         return;
       }
       
       // Botón para ocultar/mostrar controles
-      if (mouseX >= 20 && mouseX <= 200 && mouseY >= height - 45 && mouseY <= height - 20) {
+      if (mouseX >= 20 && mouseX <= 250 && mouseY >= posicionBotones + 45 && mouseY <= posicionBotones + 45 + 30) {
         mostrarControles = false;
         return;
       }
@@ -797,15 +794,14 @@ function mousePressed() {
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
     // Verificar que estamos en una zona válida para dibujar
-    // Ajustado para el nuevo tamaño del panel
-    let zonaValida = mostrarControles ? mouseX > 220 : mouseX > 50;
+    let zonaValida = mostrarControles ? mouseX > 270 : mouseX > 50;
     
     if (zonaValida) {
       // Calcular la distancia desde la última posición
       let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
-      // Solo dibujar si hemos recorrido la distancia mínima
+      // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
         dibujarPalabra(posActual.x, posActual.y);
         ultimaPosicion = posActual.copy();
