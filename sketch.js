@@ -45,6 +45,11 @@ let mostrarControles = true;
 let mensajeSalvado = false;
 let tiempoMensaje = 0;
 
+// NUEVO SISTEMA DE COORDENADAS - Variables para debug y calibración
+let modoDebug = true; // Activar para ver donde realmente hace clic el usuario
+let offsetX = 0; // Ajuste manual en X si es necesario
+let offsetY = 0; // Ajuste manual en Y si es necesario
+
 // Cargar audio
 function cargarAudio() {
   try {
@@ -164,6 +169,34 @@ function prepararPalabras() {
   }
   
   console.log("Palabras disponibles:", palabrasDisponibles);
+}
+
+// Función para obtener las coordenadas REALES del mouse relativas al canvas
+function obtenerCoordenadasCanvas(evento) {
+  // Obtener el elemento canvas
+  let canvas = document.querySelector('canvas');
+  let rect = canvas.getBoundingClientRect();
+  
+  // Calcular coordenadas relativas al canvas
+  let x = evento.clientX - rect.left;
+  let y = evento.clientY - rect.top;
+  
+  // Aplicar cualquier scaling que pueda tener el canvas
+  let scaleX = canvas.width / rect.width;
+  let scaleY = canvas.height / rect.height;
+  
+  x *= scaleX;
+  y *= scaleY;
+  
+  // Aplicar offset de calibración si es necesario
+  x += offsetX;
+  y += offsetY;
+  
+  console.log("Coordenadas calculadas:", x, y);
+  console.log("Mouse original:", evento.clientX, evento.clientY);
+  console.log("Canvas rect:", rect);
+  
+  return { x: x, y: y };
 }
 
 function draw() {
@@ -616,7 +649,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN COMPLETAMENTE REESCRITA - Versión final simplificada
+// FUNCIÓN COMPLETAMENTE REESCRITA - Con mapeo correcto de coordenadas
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -628,26 +661,36 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // IMPORTANTE: Un enfoque mucho más directo
-  // Usar exactamente las coordenadas del mouse, sin ajustes adicionales
+  // MODO DEBUG: Dibujar un círculo donde se va a colocar la palabra
+  if (modoDebug) {
+    // Círculo en el canvas principal
+    fill(255, 0, 0, 100); // Rojo semi-transparente
+    noStroke();
+    ellipse(x, y, 20, 20);
+    
+    // Círculo en el lienzo secundario
+    lienzo.fill(255, 0, 0, 100);
+    lienzo.noStroke();
+    lienzo.ellipse(x, y, 20, 20);
+  }
   
-  // Configuración para dibujar texto centrado
+  // Configuración para dibujar texto
   textSize(tamanoTexto);
   textFont(fuentes[fuenteSeleccionada]);
   fill(colorTexto);
   textAlign(CENTER, CENTER);
   
-  // Dibujar directamente en el canvas principal
+  // Dibujar en el canvas principal
   text(palabra, x, y);
   
-  // Dibujar lo mismo en el lienzo secundario para guardar
+  // Dibujar en el lienzo secundario
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
   lienzo.textAlign(CENTER, CENTER);
   lienzo.text(palabra, x, y);
   
-  console.log("Dibujando palabra:", palabra, "en posición exacta:", x, y);
+  console.log("Palabra dibujada:", palabra, "en coordenadas:", x, y);
 }
 
 function guardarCreacion() {
@@ -657,19 +700,22 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// Función para determinar si un punto está dentro del área dibujable
+// Función mejorada para verificar área dibujable
 function estaEnAreaDibujable(x, y) {
-  // Si el panel está visible, el área dibujable empieza en x=270
-  // Si el panel está oculto, el área dibujable empieza en x=50
   let minX = mostrarControles ? 270 : 50;
+  let maxX = width - 10; // Margen derecho
+  let minY = 10; // Margen superior
+  let maxY = height - 10; // Margen inferior
   
-  // El área dibujable empieza en y=0 y termina en y=height
-  return (x > minX && x < width && y > 0 && y < height);
+  return (x > minX && x < maxX && y > minY && y < maxY);
 }
 
-// FUNCIÓN SIMPLIFICADA para el mouse press
+// FUNCIÓN MOUSEPRESSED COMPLETAMENTE REESCRITA
 function mousePressed() {
-  // Parte no modificada para audio y estados anteriores
+  // Guardar el evento original del mouse para cálculos precisos
+  let evento = arguments[0] || window.event;
+  
+  // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
     if (audioContext && audioContext.state !== 'running') {
       audioContext.resume().then(() => reproducirAudio());
@@ -725,7 +771,7 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS
+  // Estado RESULTADOS - AQUÍ ESTÁ EL CAMBIO PRINCIPAL
   else if (estadoActual === "RESULTADOS") {
     // Verificar si se hace clic en el panel oculto para mostrarlo
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
@@ -733,21 +779,29 @@ function mousePressed() {
       return;
     }
     
-    // Comenzar a dibujar si está en el área dibujable
-    if (estaEnAreaDibujable(mouseX, mouseY)) {
+    // NUEVO SISTEMA: Usar coordenadas calculadas correctamente
+    let coordenadas = obtenerCoordenadasCanvas(evento);
+    let xReal = coordenadas.x;
+    let yReal = coordenadas.y;
+    
+    console.log("Clic detectado en:", xReal, yReal);
+    console.log("Mouse p5js reporta:", mouseX, mouseY);
+    
+    // Verificar si las coordenadas REALES están en el área dibujable
+    if (estaEnAreaDibujable(xReal, yReal)) {
       dibujando = true;
       
-      // Guardar posición exacta del clic para dibujar
-      ultimaPosicion = createVector(mouseX, mouseY);
+      // Guardar posición REAL del clic
+      ultimaPosicion = createVector(xReal, yReal);
       
-      // Dibujar la primera palabra exactamente donde se hizo clic
-      dibujarPalabra(mouseX, mouseY);
+      // Dibujar usando las coordenadas REALES
+      dibujarPalabra(xReal, yReal);
       return;
     }
     
-    // Interacciones con el panel de control
+    // Interacciones con el panel (usando mouseX y mouseY normales para UI)
     if (mostrarControles) {
-      let baseY = 310; // Debe coincidir con el diseño del panel
+      let baseY = 310;
       let espaciado = 45;
       
       // Selector de fuente
@@ -759,53 +813,48 @@ function mousePressed() {
       // Botones de tamaño
       baseY += espaciado;
       if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
-        tamanoTexto = max(10, tamanoTexto - 2); // Botón -
+        tamanoTexto = max(10, tamanoTexto - 2);
         return;
       }
       
       if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
-        tamanoTexto = min(72, tamanoTexto + 2); // Botón +
+        tamanoTexto = min(72, tamanoTexto + 2);
         return;
       }
       
       // Botones de densidad
       baseY += espaciado;
       if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
-        distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5); // Botón - (menos densidad)
+        distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5);
         return;
       }
       
       if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
-        distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5); // Botón + (más densidad)
+        distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5);
         return;
       }
       
       // Selector de color
       baseY += espaciado;
-      // Primera fila de colores
       if (mouseY >= baseY-12 && mouseY <= baseY+12) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0);          // Negro
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(255, 0, 0);  // Rojo
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);  // Azul
+        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0);
+        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(255, 0, 0);
+        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);
       }
       
-      // Segunda fila de colores
       if (mouseY >= baseY+18 && mouseY <= baseY+42) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0, 128, 0);    // Verde
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(128, 0, 128);  // Morado
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);  // Naranja
+        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0, 128, 0);
+        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(128, 0, 128);
+        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);
       }
       
-      // Posición de los botones (posición Y actualizada)
+      // Botones de acción
       let guardarY = 610;
-      
-      // Botón para guardar
       if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY && mouseY <= guardarY+35) {
         guardarCreacion();
         return;
       }
       
-      // Botón para ocultar controles
       if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY+45 && mouseY <= guardarY+70) {
         mostrarControles = false;
         return;
@@ -814,19 +863,24 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN SIMPLIFICADA para el arrastre del mouse
+// FUNCIÓN MOUSEDRAGGED REESCRITA
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
+    // Obtener evento original para cálculos precisos
+    let evento = arguments[0] || window.event;
+    let coordenadas = obtenerCoordenadasCanvas(evento);
+    let xReal = coordenadas.x;
+    let yReal = coordenadas.y;
+    
     // Solo dibujar si estamos en el área dibujable
-    if (estaEnAreaDibujable(mouseX, mouseY)) {
-      // Usar la posición exacta del mouse
-      let posActual = createVector(mouseX, mouseY);
+    if (estaEnAreaDibujable(xReal, yReal)) {
+      let posActual = createVector(xReal, yReal);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Dibujar exactamente donde está el mouse
-        dibujarPalabra(mouseX, mouseY);
+        // Dibujar exactamente donde está el mouse REAL
+        dibujarPalabra(xReal, yReal);
         
         // Actualizar la última posición
         ultimaPosicion = posActual.copy();
@@ -862,6 +916,32 @@ function keyPressed() {
   // Guardar en la pantalla RESULTADOS
   else if (estadoActual === "RESULTADOS" && (key === 's' || key === 'S')) {
     guardarCreacion();
+  }
+  
+  // NUEVA funcionalidad: Toggle debug con la tecla 'D'
+  if (key === 'd' || key === 'D') {
+    modoDebug = !modoDebug;
+    console.log("Modo debug:", modoDebug ? "ACTIVADO" : "DESACTIVADO");
+  }
+  
+  // NUEVA funcionalidad: Ajustar offset con las flechas del teclado
+  if (estadoActual === "RESULTADOS") {
+    if (keyCode === LEFT_ARROW) {
+      offsetX -= 5;
+      console.log("Offset X:", offsetX);
+    }
+    if (keyCode === RIGHT_ARROW) {
+      offsetX += 5;
+      console.log("Offset X:", offsetX);
+    }
+    if (keyCode === UP_ARROW) {
+      offsetY -= 5;
+      console.log("Offset Y:", offsetY);
+    }
+    if (keyCode === DOWN_ARROW) {
+      offsetY += 5;
+      console.log("Offset Y:", offsetY);
+    }
   }
 }
 
