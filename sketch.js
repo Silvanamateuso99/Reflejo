@@ -189,6 +189,42 @@ function verificarCanvas() {
   }
 }
 
+// NUEVA FUNCIÓN - Obtener coordenadas reales relativas al canvas
+function obtenerCoordenadasCanvas() {
+  let canvas = document.querySelector('canvas');
+  if (canvas) {
+    let rect = canvas.getBoundingClientRect();
+    
+    // Coordenadas relativas al canvas
+    let canvasX = mouseX - rect.left;
+    let canvasY = mouseY - rect.top;
+    
+    // Aplicar escala si es necesario
+    let scaleX = canvas.width / rect.width;
+    let scaleY = canvas.height / rect.height;
+    
+    let realX = canvasX * scaleX;
+    let realY = canvasY * scaleY;
+    
+    // Limitar al canvas
+    realX = constrain(realX, 0, width - 1);
+    realY = constrain(realY, 0, height - 1);
+    
+    console.log("Corrección completa:", {
+      mouseOriginal: {x: mouseX, y: mouseY},
+      canvasOffset: {left: rect.left, top: rect.top},
+      canvasRelativo: {x: canvasX, y: canvasY},
+      escala: {x: scaleX, y: scaleY},
+      coordenadaFinal: {x: realX, y: realY}
+    });
+    
+    return {x: realX, y: realY};
+  }
+  
+  // Fallback si no se puede obtener el canvas
+  return {x: constrain(mouseX, 0, width - 1), y: constrain(mouseY, 0, height - 1)};
+}
+
 function draw() {
   if (estadoActual === "INICIO") {
     dibujarPantallaInicio();
@@ -701,7 +737,7 @@ function estaEnAreaDibujable(x, y) {
   return resultado;
 }
 
-// FUNCIÓN MOUSEPRESSED CORREGIDA - Limitar coordenadas al canvas
+// FUNCIÓN MOUSEPRESSED CORREGIDA - Usar coordenadas del canvas
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -755,87 +791,87 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - LIMITAR COORDENADAS AL CANVAS
+  // Estado RESULTADOS - USAR COORDENADAS RELATIVAS AL CANVAS
   else if (estadoActual === "RESULTADOS") {
-    // LIMITAR las coordenadas del mouse al tamaño del canvas
-    let mouseXLimitado = constrain(mouseX, 0, width - 1);
-    let mouseYLimitado = constrain(mouseY, 0, height - 1);
+    // OBTENER COORDENADAS RELATIVAS AL CANVAS
+    let coordCanvas = obtenerCoordenadasCanvas();
+    let mouseXCanvas = coordCanvas.x;
+    let mouseYCanvas = coordCanvas.y;
     
-    console.log("=== MOUSE PRESS EN RESULTADOS (LIMITADO) ===");
+    console.log("=== MOUSE PRESS EN RESULTADOS (CANVAS) ===");
     console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
-    console.log("Canvas límites: width =", width, "height =", height);
+    console.log("Mouse canvas:", mouseXCanvas, mouseYCanvas);
     
     verificarCanvas();
     
-    // Verificar panel oculto (usar coordenadas originales para UI)
-    if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
+    // Verificar panel oculto (usar coordenadas de canvas)
+    if (!mostrarControles && mouseXCanvas <= 50 && mouseYCanvas >= 100 && mouseYCanvas <= 180) {
       mostrarControles = true;
       return;
     }
     
-    // USAR COORDENADAS LIMITADAS PARA DIBUJO
-    if (mouseXLimitado > 280) {
-      console.log("*** DIBUJANDO CON COORDENADAS LIMITADAS ***");
+    // USAR COORDENADAS DEL CANVAS PARA DIBUJO
+    if (mouseXCanvas > 280) {
+      console.log("*** DIBUJANDO CON COORDENADAS DEL CANVAS ***");
       dibujando = true;
-      ultimaPosicion = createVector(mouseXLimitado, mouseYLimitado);
-      dibujarPalabra(mouseXLimitado, mouseYLimitado);
+      ultimaPosicion = createVector(mouseXCanvas, mouseYCanvas);
+      dibujarPalabra(mouseXCanvas, mouseYCanvas);
       return;
     }
     
-    // Interacciones con el panel (usar coordenadas originales)
-    if (mostrarControles && mouseX < 270) {
+    // Interacciones con el panel (usar coordenadas del canvas)
+    if (mostrarControles && mouseXCanvas < 270) {
       let baseY = 310;
       let espaciado = 45;
       
       // Selector de fuente
-      if (mouseX >= 90 && mouseX <= 240 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (mouseXCanvas >= 90 && mouseXCanvas <= 240 && mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
         fuenteSeleccionada = (fuenteSeleccionada + 1) % fuentes.length;
         return;
       }
       
       // Botones de tamaño
       baseY += espaciado;
-      if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (mouseXCanvas >= 90 && mouseXCanvas <= 115 && mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
         tamanoTexto = max(10, tamanoTexto - 2);
         return;
       }
-      if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (mouseXCanvas >= 125 && mouseXCanvas <= 150 && mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
         tamanoTexto = min(72, tamanoTexto + 2);
         return;
       }
       
       // Botones de densidad
       baseY += espaciado;
-      if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (mouseXCanvas >= 90 && mouseXCanvas <= 115 && mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
         distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5);
         return;
       }
-      if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (mouseXCanvas >= 125 && mouseXCanvas <= 150 && mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
         distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5);
         return;
       }
       
       // Colores
       baseY += espaciado;
-      if (mouseY >= baseY-12 && mouseY <= baseY+12) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0);
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(255, 0, 0);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);
+      if (mouseYCanvas >= baseY-12 && mouseYCanvas <= baseY+12) {
+        if (mouseXCanvas >= 90 && mouseXCanvas <= 115) colorTexto = color(0);
+        if (mouseXCanvas >= 130 && mouseXCanvas <= 155) colorTexto = color(255, 0, 0);
+        if (mouseXCanvas >= 170 && mouseXCanvas <= 195) colorTexto = color(0, 0, 255);
       }
-      if (mouseY >= baseY+18 && mouseY <= baseY+42) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0, 128, 0);
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(128, 0, 128);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);
+      if (mouseYCanvas >= baseY+18 && mouseYCanvas <= baseY+42) {
+        if (mouseXCanvas >= 90 && mouseXCanvas <= 115) colorTexto = color(0, 128, 0);
+        if (mouseXCanvas >= 130 && mouseXCanvas <= 155) colorTexto = color(128, 0, 128);
+        if (mouseXCanvas >= 170 && mouseXCanvas <= 195) colorTexto = color(255, 165, 0);
       }
       
       // Botones
       let guardarY = 610;
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY && mouseY <= guardarY+35) {
+      if (mouseXCanvas >= 20 && mouseXCanvas <= 250 && mouseYCanvas >= guardarY && mouseYCanvas <= guardarY+35) {
         guardarCreacion();
         return;
       }
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY+45 && mouseY <= guardarY+70) {
+      if (mouseXCanvas >= 20 && mouseXCanvas <= 250 && mouseYCanvas >= guardarY+45 && mouseYCanvas <= guardarY+70) {
         mostrarControles = false;
         return;
       }
@@ -843,25 +879,26 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED CORREGIDA - Limitar coordenadas
+// FUNCIÓN MOUSEDRAGGED CORREGIDA - Usar coordenadas del canvas
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    // LIMITAR las coordenadas del mouse al tamaño del canvas
-    let mouseXLimitado = constrain(mouseX, 0, width - 1);
-    let mouseYLimitado = constrain(mouseY, 0, height - 1);
+    // OBTENER COORDENADAS RELATIVAS AL CANVAS
+    let coordCanvas = obtenerCoordenadasCanvas();
+    let mouseXCanvas = coordCanvas.x;
+    let mouseYCanvas = coordCanvas.y;
     
-    console.log("=== MOUSE DRAG (LIMITADO) ===");
+    console.log("=== MOUSE DRAG (CANVAS) ===");
     console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
+    console.log("Mouse canvas:", mouseXCanvas, mouseYCanvas);
     
-    // USAR COORDENADAS LIMITADAS
-    if (mouseXLimitado > 280) {
-      let posActual = createVector(mouseXLimitado, mouseYLimitado);
+    // USAR COORDENADAS DEL CANVAS
+    if (mouseXCanvas > 280) {
+      let posActual = createVector(mouseXCanvas, mouseYCanvas);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       if (distancia >= distanciaEntrePalabras) {
-        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS LIMITADAS ***");
-        dibujarPalabra(mouseXLimitado, mouseYLimitado);
+        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS DEL CANVAS ***");
+        dibujarPalabra(mouseXCanvas, mouseYCanvas);
         ultimaPosicion = posActual.copy();
       }
     }
@@ -874,7 +911,7 @@ function mouseReleased() {
   }
 }
 
-// FUNCIÓN KEYPRESSED CORREGIDA - Debug con coordenadas limitadas
+// FUNCIÓN KEYPRESSED CORREGIDA - Debug con coordenadas del canvas
 function keyPressed() {
   // Capturar texto en pantalla PREGUNTA (sin cambios)
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
@@ -898,23 +935,21 @@ function keyPressed() {
     guardarCreacion();
   }
   
-  // DEBUG LIMITADO: Información con tecla D
+  // DEBUG CANVAS: Información con tecla D
   if (key === 'd' || key === 'D') {
-    console.log("=== DEBUG INFO LIMITADO ===");
+    console.log("=== DEBUG INFO CANVAS ===");
     console.log("Estado actual:", estadoActual);
     
-    let mouseXLimitado = constrain(mouseX, 0, width - 1);
-    let mouseYLimitado = constrain(mouseY, 0, height - 1);
-    
+    let coordCanvas = obtenerCoordenadasCanvas();
     console.log("Mouse original:", mouseX, mouseY);
-    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
+    console.log("Mouse canvas:", coordCanvas.x, coordCanvas.y);
     console.log("Canvas size:", width, height);
     console.log("Panel visible:", mostrarControles);
     verificarCanvas();
     
-    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA - COORDENADAS SEGURAS
+    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA - COORDENADAS CANVAS
     if (estadoActual === "RESULTADOS") {
-      console.log("*** FORZANDO DIBUJO EN EL CENTRO CON COORDENADAS SEGURAS ***");
+      console.log("*** FORZANDO DIBUJO EN EL CENTRO CON COORDENADAS CANVAS ***");
       let centroTestX = 600; // Centro del área de dibujo
       let centroTestY = 400; // Centro vertical
       dibujarPalabra(centroTestX, centroTestY);
