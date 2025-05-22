@@ -45,10 +45,10 @@ let mostrarControles = true;
 let mensajeSalvado = false;
 let tiempoMensaje = 0;
 
-// NUEVO SISTEMA DE COORDENADAS - Variables para debug y calibración
-let modoDebug = true; // Activar para ver donde realmente hace clic el usuario
-let offsetX = 0; // Ajuste manual en X si es necesario
-let offsetY = 0; // Ajuste manual en Y si es necesario
+// SISTEMA SIMPLIFICADO - Variables para debug desactivado
+let modoDebug = false; // DESACTIVADO para quitar los círculos rojos
+let offsetX = 0;
+let offsetY = 0;
 
 // Cargar audio
 function cargarAudio() {
@@ -169,34 +169,6 @@ function prepararPalabras() {
   }
   
   console.log("Palabras disponibles:", palabrasDisponibles);
-}
-
-// Función para obtener las coordenadas REALES del mouse relativas al canvas
-function obtenerCoordenadasCanvas(evento) {
-  // Obtener el elemento canvas
-  let canvas = document.querySelector('canvas');
-  let rect = canvas.getBoundingClientRect();
-  
-  // Calcular coordenadas relativas al canvas
-  let x = evento.clientX - rect.left;
-  let y = evento.clientY - rect.top;
-  
-  // Aplicar cualquier scaling que pueda tener el canvas
-  let scaleX = canvas.width / rect.width;
-  let scaleY = canvas.height / rect.height;
-  
-  x *= scaleX;
-  y *= scaleY;
-  
-  // Aplicar offset de calibración si es necesario
-  x += offsetX;
-  y += offsetY;
-  
-  console.log("Coordenadas calculadas:", x, y);
-  console.log("Mouse original:", evento.clientX, evento.clientY);
-  console.log("Canvas rect:", rect);
-  
-  return { x: x, y: y };
 }
 
 function draw() {
@@ -649,7 +621,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN COMPLETAMENTE REESCRITA - Con mapeo correcto de coordenadas
+// FUNCIÓN SIMPLIFICADA - Eliminar todas las conversiones complejas
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -661,18 +633,7 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // MODO DEBUG: Dibujar un círculo donde se va a colocar la palabra
-  if (modoDebug) {
-    // Círculo en el canvas principal
-    fill(255, 0, 0, 100); // Rojo semi-transparente
-    noStroke();
-    ellipse(x, y, 20, 20);
-    
-    // Círculo en el lienzo secundario
-    lienzo.fill(255, 0, 0, 100);
-    lienzo.noStroke();
-    lienzo.ellipse(x, y, 20, 20);
-  }
+  // NO MÁS CÍRCULOS DEBUG - código eliminado
   
   // Configuración para dibujar texto
   textSize(tamanoTexto);
@@ -700,21 +661,19 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// Función mejorada para verificar área dibujable
+// FUNCIÓN SIMPLIFICADA - Expandir el área dibujable
 function estaEnAreaDibujable(x, y) {
-  let minX = mostrarControles ? 270 : 50;
-  let maxX = width - 10; // Margen derecho
-  let minY = 10; // Margen superior
-  let maxY = height - 10; // Margen inferior
+  // Expandir significativamente el área dibujable
+  let minX = mostrarControles ? 270 : 50; // Mismo límite izquierdo
+  let maxX = width - 50; // Más margen a la derecha para usar todo el canvas
+  let minY = 50; // Margen superior
+  let maxY = height - 50; // Margen inferior
   
   return (x > minX && x < maxX && y > minY && y < maxY);
 }
 
-// FUNCIÓN MOUSEPRESSED COMPLETAMENTE REESCRITA
+// FUNCIÓN MOUSEPRESSED ULTRA SIMPLIFICADA - SIN conversiones de coordenadas
 function mousePressed() {
-  // Guardar el evento original del mouse para cálculos precisos
-  let evento = arguments[0] || window.event;
-  
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
     if (audioContext && audioContext.state !== 'running') {
@@ -771,7 +730,7 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - AQUÍ ESTÁ EL CAMBIO PRINCIPAL
+  // Estado RESULTADOS - ENFOQUE SIMPLIFICADO
   else if (estadoActual === "RESULTADOS") {
     // Verificar si se hace clic en el panel oculto para mostrarlo
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
@@ -779,27 +738,22 @@ function mousePressed() {
       return;
     }
     
-    // NUEVO SISTEMA: Usar coordenadas calculadas correctamente
-    let coordenadas = obtenerCoordenadasCanvas(evento);
-    let xReal = coordenadas.x;
-    let yReal = coordenadas.y;
+    // USAR DIRECTAMENTE mouseX y mouseY de p5.js - SIN conversiones
+    console.log("Clic detectado en mouseX:", mouseX, "mouseY:", mouseY);
     
-    console.log("Clic detectado en:", xReal, yReal);
-    console.log("Mouse p5js reporta:", mouseX, mouseY);
-    
-    // Verificar si las coordenadas REALES están en el área dibujable
-    if (estaEnAreaDibujable(xReal, yReal)) {
+    // Verificar si está en el área dibujable
+    if (estaEnAreaDibujable(mouseX, mouseY)) {
       dibujando = true;
       
-      // Guardar posición REAL del clic
-      ultimaPosicion = createVector(xReal, yReal);
+      // Guardar posición directa
+      ultimaPosicion = createVector(mouseX, mouseY);
       
-      // Dibujar usando las coordenadas REALES
-      dibujarPalabra(xReal, yReal);
+      // Dibujar usando las coordenadas DIRECTAS de p5.js
+      dibujarPalabra(mouseX, mouseY);
       return;
     }
     
-    // Interacciones con el panel (usando mouseX y mouseY normales para UI)
+    // Interacciones con el panel (sin cambios)
     if (mostrarControles) {
       let baseY = 310;
       let espaciado = 45;
@@ -863,24 +817,21 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED REESCRITA
+// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    // Obtener evento original para cálculos precisos
-    let evento = arguments[0] || window.event;
-    let coordenadas = obtenerCoordenadasCanvas(evento);
-    let xReal = coordenadas.x;
-    let yReal = coordenadas.y;
+    // USAR DIRECTAMENTE mouseX y mouseY de p5.js
+    console.log("Arrastrando en mouseX:", mouseX, "mouseY:", mouseY);
     
     // Solo dibujar si estamos en el área dibujable
-    if (estaEnAreaDibujable(xReal, yReal)) {
-      let posActual = createVector(xReal, yReal);
+    if (estaEnAreaDibujable(mouseX, mouseY)) {
+      let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Dibujar exactamente donde está el mouse REAL
-        dibujarPalabra(xReal, yReal);
+        // Dibujar exactamente donde está mouseX, mouseY
+        dibujarPalabra(mouseX, mouseY);
         
         // Actualizar la última posición
         ultimaPosicion = posActual.copy();
@@ -895,6 +846,7 @@ function mouseReleased() {
   }
 }
 
+// FUNCIÓN KEYPRESSED SIMPLIFICADA - Eliminar las funciones de debug y offset
 function keyPressed() {
   // Capturar texto en la pantalla PREGUNTA
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
@@ -918,30 +870,10 @@ function keyPressed() {
     guardarCreacion();
   }
   
-  // NUEVA funcionalidad: Toggle debug con la tecla 'D'
+  // FUNCIÓN DE DEBUG SIMPLIFICADA - Solo para testing si es necesario
   if (key === 'd' || key === 'D') {
-    modoDebug = !modoDebug;
-    console.log("Modo debug:", modoDebug ? "ACTIVADO" : "DESACTIVADO");
-  }
-  
-  // NUEVA funcionalidad: Ajustar offset con las flechas del teclado
-  if (estadoActual === "RESULTADOS") {
-    if (keyCode === LEFT_ARROW) {
-      offsetX -= 5;
-      console.log("Offset X:", offsetX);
-    }
-    if (keyCode === RIGHT_ARROW) {
-      offsetX += 5;
-      console.log("Offset X:", offsetX);
-    }
-    if (keyCode === UP_ARROW) {
-      offsetY -= 5;
-      console.log("Offset Y:", offsetY);
-    }
-    if (keyCode === DOWN_ARROW) {
-      offsetY += 5;
-      console.log("Offset Y:", offsetY);
-    }
+    console.log("Posición actual del mouse:", mouseX, mouseY);
+    console.log("Área dibujable:", estaEnAreaDibujable(mouseX, mouseY));
   }
 }
 
