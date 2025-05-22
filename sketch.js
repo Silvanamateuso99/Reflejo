@@ -621,7 +621,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN SIMPLIFICADA - Eliminar todas las conversiones complejas
+// FUNCIÓN SIMPLIFICADA - Para debug visual temporal
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -633,7 +633,10 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // NO MÁS CÍRCULOS DEBUG - código eliminado
+  // DEBUG TEMPORAL: Dibujar un pequeño círculo verde para ver dónde se dibuja
+  fill(0, 255, 0, 150); // Verde semi-transparente
+  noStroke();
+  ellipse(x, y, 8, 8);
   
   // Configuración para dibujar texto
   textSize(tamanoTexto);
@@ -645,13 +648,17 @@ function dibujarPalabra(x, y) {
   text(palabra, x, y);
   
   // Dibujar en el lienzo secundario
+  lienzo.fill(0, 255, 0, 150); // Verde para debug en lienzo
+  lienzo.noStroke();
+  lienzo.ellipse(x, y, 8, 8);
+  
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
   lienzo.textAlign(CENTER, CENTER);
   lienzo.text(palabra, x, y);
   
-  console.log("Palabra dibujada:", palabra, "en coordenadas:", x, y);
+  console.log("Palabra dibujada:", palabra, "en coordenadas exactas:", x, y);
 }
 
 function guardarCreacion() {
@@ -661,18 +668,38 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN SIMPLIFICADA - Expandir el área dibujable
+// FUNCIÓN CORREGIDA - Definir correctamente el área dibujable
 function estaEnAreaDibujable(x, y) {
-  // Expandir significativamente el área dibujable
-  let minX = mostrarControles ? 270 : 50; // Mismo límite izquierdo
-  let maxX = width - 50; // Más margen a la derecha para usar todo el canvas
-  let minY = 50; // Margen superior
-  let maxY = height - 50; // Margen inferior
+  let minX, maxX, minY, maxY;
+  
+  if (mostrarControles) {
+    // Si el panel está visible: el área dibujable empieza donde termina el panel
+    minX = 270; // Justo después del panel (que termina en x=260)
+    maxX = 1200; // Todo el ancho del canvas
+    minY = 0; // Desde la parte superior
+    maxY = 800; // Hasta la parte inferior
+  } else {
+    // Si el panel está oculto: casi todo el canvas es dibujable
+    minX = 60; // Pequeño margen desde la izquierda
+    maxX = 1200; // Todo el ancho del canvas
+    minY = 0; // Desde la parte superior
+    maxY = 800; // Hasta la parte inferior
+  }
+  
+  console.log("Verificando área dibujable:", {
+    x: x, 
+    y: y, 
+    minX: minX, 
+    maxX: maxX, 
+    minY: minY, 
+    maxY: maxY,
+    esDibujable: (x > minX && x < maxX && y > minY && y < maxY)
+  });
   
   return (x > minX && x < maxX && y > minY && y < maxY);
 }
 
-// FUNCIÓN MOUSEPRESSED ULTRA SIMPLIFICADA - SIN conversiones de coordenadas
+// FUNCIÓN MOUSEPRESSED MODIFICADA - Con logs detallados
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -730,19 +757,22 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - ENFOQUE SIMPLIFICADO
+  // Estado RESULTADOS - CON LOGS DETALLADOS
   else if (estadoActual === "RESULTADOS") {
+    console.log("=== CLIC EN RESULTADOS ===");
+    console.log("mouseX:", mouseX, "mouseY:", mouseY);
+    console.log("Panel visible:", mostrarControles);
+    
     // Verificar si se hace clic en el panel oculto para mostrarlo
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
       mostrarControles = true;
+      console.log("Mostrando panel");
       return;
     }
     
-    // USAR DIRECTAMENTE mouseX y mouseY de p5.js - SIN conversiones
-    console.log("Clic detectado en mouseX:", mouseX, "mouseY:", mouseY);
-    
     // Verificar si está en el área dibujable
     if (estaEnAreaDibujable(mouseX, mouseY)) {
+      console.log("*** INICIANDO DIBUJO ***");
       dibujando = true;
       
       // Guardar posición directa
@@ -751,6 +781,8 @@ function mousePressed() {
       // Dibujar usando las coordenadas DIRECTAS de p5.js
       dibujarPalabra(mouseX, mouseY);
       return;
+    } else {
+      console.log("Clic fuera del área dibujable");
     }
     
     // Interacciones con el panel (sin cambios)
@@ -817,25 +849,31 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA
+// FUNCIÓN MOUSEDRAGGED MODIFICADA - Con logs detallados
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    // USAR DIRECTAMENTE mouseX y mouseY de p5.js
-    console.log("Arrastrando en mouseX:", mouseX, "mouseY:", mouseY);
+    console.log("=== ARRASTRANDO ===");
+    console.log("mouseX:", mouseX, "mouseY:", mouseY);
     
     // Solo dibujar si estamos en el área dibujable
     if (estaEnAreaDibujable(mouseX, mouseY)) {
       let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
+      console.log("Distancia:", distancia, "Mínima requerida:", distanciaEntrePalabras);
+      
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
+        console.log("*** DIBUJANDO AL ARRASTRAR ***");
+        
         // Dibujar exactamente donde está mouseX, mouseY
         dibujarPalabra(mouseX, mouseY);
         
         // Actualizar la última posición
         ultimaPosicion = posActual.copy();
       }
+    } else {
+      console.log("Arrastre fuera del área dibujable");
     }
   }
 }
