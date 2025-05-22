@@ -419,12 +419,12 @@ function dibujarPantallaResultados() {
   }
 }
 
-// FUNCIÓN COMPLETAMENTE REDISEÑADA - Panel más compacto y mejor estructurado
+// FUNCIÓN COMPLETAMENTE REDISEÑADA - Panel con posición inferior
 function dibujarPanelLateral() {
-  // Panel izquierdo - altura reducida
+  // Panel izquierdo - altura reducida y posición ajustada
   fill(240);
   stroke(200);
-  rect(10, 10, 250, 520, 10); // Altura reducida
+  rect(10, 60, 250, 470, 10); // Movido hacia abajo y altura reducida
   
   // Título
   fill(0);
@@ -432,25 +432,25 @@ function dibujarPanelLateral() {
   textSize(16);
   textStyle(BOLD);
   textAlign(CENTER, TOP);
-  text("¡A Dibujar!", 135, 20);
+  text("¡A Dibujar!", 135, 70);
   
   // Instrucciones
   textSize(10);
   textStyle(NORMAL);
   textAlign(LEFT, TOP);
   fill(80);
-  text("Mantén presionado el botón del mouse y mueve el cursor para dibujar con tus palabras.", 20, 40, 230, 30);
+  text("Mantén presionado el botón del mouse y mueve el cursor para dibujar con tus palabras.", 20, 90, 230, 30);
   
   // Recuadro de palabras - más pequeño
   fill(255);
   stroke(200);
-  rect(20, 70, 230, 80, 5);
+  rect(20, 120, 230, 80, 5);
   
   // Mostrar palabras disponibles
   textSize(11);
   textAlign(LEFT, TOP);
   fill(0);
-  let y = 75;
+  let y = 125;
   let contador = 0;
   
   for (let palabra of palabrasDisponibles) {
@@ -462,12 +462,12 @@ function dibujarPanelLateral() {
   
   if (contador === 0) {
     fill(100);
-    text("No hay palabras disponibles", 30, 85);
+    text("No hay palabras disponibles", 30, 140);
   }
   
   // CONTROLES - espacio reducido entre ellos
-  let baseY = 160; // Empezar controles más arriba
-  let espaciado = 30; // Menos espacio entre controles
+  let baseY = 205; // Posición base de los controles
+  let espaciado = 30; // Espacio entre controles
   
   // Tipografía
   fill(0);
@@ -530,7 +530,7 @@ function dibujarPanelLateral() {
   colorMuestra(125, baseY + 15, color(128, 0, 128)); // Morado
   colorMuestra(160, baseY + 15, color(255, 165, 0)); // Naranja
   
-  // Instrucciones de uso - más compactas y comienzan justo después de los colores
+  // Instrucciones de uso - más compactas
   baseY += espaciado + 25; // Ajuste para que esté después de la segunda fila de colores
   fill(0);
   textAlign(LEFT, TOP);
@@ -541,23 +541,23 @@ function dibujarPanelLateral() {
   textSize(10);
   text("1. Presiona y arrastra para dibujar\n2. Ajusta densidad, estilo y color\n3. Realiza múltiples trazos\n4. Guarda tu creación", 20, baseY + 20, 230, 60);
   
-  // Botones - colocados justo después de las instrucciones, sin espacio en medio
-  baseY += 90; // Posición después de las instrucciones
+  // Botones - colocados justo después de las instrucciones
+  let botonesY = 435; // Posición Y fija para los botones
   
   // Botón para guardar
   fill(20);
-  rect(20, baseY, 230, 30, 5);
+  rect(20, botonesY, 230, 30, 5);
   fill(255);
   textSize(12);
   textAlign(CENTER, CENTER);
-  text("Guardar Mi Creación", 135, baseY + 15);
+  text("Guardar Mi Creación", 135, botonesY + 15);
   
   // Botón para ocultar controles - justo debajo del anterior
   fill(150);
-  rect(20, baseY + 35, 230, 25, 5);
+  rect(20, botonesY + 35, 230, 25, 5);
   fill(255);
   textAlign(CENTER, CENTER);
-  text("Ocultar Panel", 135, baseY + 35 + 12);
+  text("Ocultar Panel", 135, botonesY + 35 + 12);
 }
 
 // FUNCIÓN MODIFICADA para el tamaño del color
@@ -635,6 +635,8 @@ function dibujarPalabra(x, y) {
   textSize(tamanoTexto);
   textAlign(CENTER, CENTER);
   fill(colorTexto);
+  
+  // Dibujar directamente en las coordenadas del mouse
   text(palabra, x, y);
   pop();
   
@@ -645,6 +647,8 @@ function dibujarPalabra(x, y) {
   lienzo.textSize(tamanoTexto);
   lienzo.textAlign(CENTER, CENTER);
   lienzo.fill(colorTexto);
+  
+  // Usar las mismas coordenadas exactas para el lienzo secundario
   lienzo.text(palabra, x, y);
   lienzo.pop();
 }
@@ -725,6 +729,8 @@ function mousePressed() {
     // Comenzar a dibujar si está fuera del panel
     if ((mostrarControles && mouseX > 270) || (!mostrarControles && mouseX > 50)) {
       dibujando = true;
+      
+      // Almacenar posición inicial exacta del clic
       ultimaPosicion = createVector(mouseX, mouseY);
       
       // Dibujar la primera palabra en la posición inicial del clic
@@ -734,7 +740,7 @@ function mousePressed() {
     
     // Interacciones con el panel de control (coordenadas actualizadas)
     if (mostrarControles) {
-      let baseY = 160; // Debe coincidir con el diseño del panel
+      let baseY = 205; // Debe coincidir con el diseño del panel
       let espaciado = 30;
       
       // Selector de fuente
@@ -783,18 +789,17 @@ function mousePressed() {
         if (mouseX >= 160 && mouseX <= 185) colorTexto = color(255, 165, 0);  // Naranja
       }
       
-      // Posición de los botones
-      baseY += espaciado + 25; // Salta las instrucciones
-      baseY += 90; // Saltamos la sección de instrucciones
+      // Posición de los botones (posición Y fija)
+      let botonesY = 435;
       
       // Botón para guardar
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= baseY && mouseY <= baseY+30) {
+      if (mouseX >= 20 && mouseX <= 250 && mouseY >= botonesY && mouseY <= botonesY+30) {
         guardarCreacion();
         return;
       }
       
       // Botón para ocultar controles
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= baseY+35 && mouseY <= baseY+60) {
+      if (mouseX >= 20 && mouseX <= 250 && mouseY >= botonesY+35 && mouseY <= botonesY+60) {
         mostrarControles = false;
         return;
       }
