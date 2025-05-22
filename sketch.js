@@ -616,7 +616,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN COMPLETAMENTE REESCRITA para dibujar exactamente en el centro del canvas
+// FUNCIÓN COMPLETAMENTE REESCRITA - Versión final simplificada
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -628,35 +628,26 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // Ajustar coordenadas para centrar en el canvas visible
-  // El panel tiene 270px de ancho cuando está visible
-  let anchoDisponible = mostrarControles ? width - 270 : width - 50;
-  let xCentrado = mostrarControles ? 270 + (anchoDisponible / 2) : 50 + (anchoDisponible / 2);
-  
-  // Ahora veamos dónde está haciendo clic el usuario respecto al centro
-  let offsetX = x - xCentrado;
-  
-  // Usamos las coordenadas del ratón, pero ajustamos Y para estar en el centro vertical
-  let xFinal = xCentrado + offsetX * 0.8; // Reducimos un poco el offset para centrarlo mejor
-  let yFinal = Math.max(200, y); // Aseguramos que esté al menos a 200px del borde superior
-  
-  console.log("Dibujando palabra:", palabra, "en", xFinal, yFinal); // Debug info
+  // IMPORTANTE: Un enfoque mucho más directo
+  // Usar exactamente las coordenadas del mouse, sin ajustes adicionales
   
   // Configuración para dibujar texto centrado
-  textAlign(CENTER, CENTER);
   textSize(tamanoTexto);
   textFont(fuentes[fuenteSeleccionada]);
   fill(colorTexto);
+  textAlign(CENTER, CENTER);
   
   // Dibujar directamente en el canvas principal
-  text(palabra, xFinal, yFinal);
+  text(palabra, x, y);
   
-  // Configurar y dibujar en el lienzo secundario para guardar
-  lienzo.textAlign(CENTER, CENTER);
+  // Dibujar lo mismo en el lienzo secundario para guardar
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
-  lienzo.text(palabra, xFinal, yFinal);
+  lienzo.textAlign(CENTER, CENTER);
+  lienzo.text(palabra, x, y);
+  
+  console.log("Dibujando palabra:", palabra, "en posición exacta:", x, y);
 }
 
 function guardarCreacion() {
@@ -666,7 +657,17 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN MODIFICADA para iniciar el dibujo
+// Función para determinar si un punto está dentro del área dibujable
+function estaEnAreaDibujable(x, y) {
+  // Si el panel está visible, el área dibujable empieza en x=270
+  // Si el panel está oculto, el área dibujable empieza en x=50
+  let minX = mostrarControles ? 270 : 50;
+  
+  // El área dibujable empieza en y=0 y termina en y=height
+  return (x > minX && x < width && y > 0 && y < height);
+}
+
+// FUNCIÓN SIMPLIFICADA para el mouse press
 function mousePressed() {
   // Parte no modificada para audio y estados anteriores
   if (!musicaIniciada) {
@@ -683,7 +684,7 @@ function mousePressed() {
     console.log("Cambiando a pantalla ADVERTENCIA");
   } 
   else if (estadoActual === "ADVERTENCIA") {
-    // Código no modificado para ADVERTENCIA
+    // Verificar clic en botón Bienvenido
     let botonX = centroX - 100;
     let botonY = 620;
     let botonAncho = 200;
@@ -696,11 +697,12 @@ function mousePressed() {
     }
   }
   else if (estadoActual === "PREGUNTA" && !cargando) {
-    // Código no modificado para PREGUNTA
+    // Calcular la posición del botón/campo de respuesta
     let altoImagen = 400;
     let imagenYInferior = centroY + altoImagen/2;
     let respuestaY = imagenYInferior + 40;
     
+    // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
     let botonY = respuestaY;
     let botonAncho = 400;
@@ -731,19 +733,19 @@ function mousePressed() {
       return;
     }
     
-    // Comenzar a dibujar si está fuera del panel
-    if ((mostrarControles && mouseX > 270) || (!mostrarControles && mouseX > 50)) {
+    // Comenzar a dibujar si está en el área dibujable
+    if (estaEnAreaDibujable(mouseX, mouseY)) {
       dibujando = true;
       
       // Guardar posición exacta del clic para dibujar
       ultimaPosicion = createVector(mouseX, mouseY);
       
-      // Dibujar la primera palabra - la función dibujarPalabra ajustará las coordenadas
+      // Dibujar la primera palabra exactamente donde se hizo clic
       dibujarPalabra(mouseX, mouseY);
       return;
     }
     
-    // Interacciones con el panel de control (coordenadas actualizadas)
+    // Interacciones con el panel de control
     if (mostrarControles) {
       let baseY = 310; // Debe coincidir con el diseño del panel
       let espaciado = 45;
@@ -812,20 +814,18 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MODIFICADA para asegurar que el arrastre dibuje en el área visible
+// FUNCIÓN SIMPLIFICADA para el arrastre del mouse
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    // Verificar que estamos en una zona válida para dibujar
-    let zonaValida = mostrarControles ? mouseX > 270 : mouseX > 50;
-    
-    if (zonaValida) {
-      // Aquí no ajustamos las coordenadas Y, porque dibujarPalabra lo hará
+    // Solo dibujar si estamos en el área dibujable
+    if (estaEnAreaDibujable(mouseX, mouseY)) {
+      // Usar la posición exacta del mouse
       let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Pasar las coordenadas directamente, la función dibujarPalabra se encargará de ajustarlas
+        // Dibujar exactamente donde está el mouse
         dibujarPalabra(mouseX, mouseY);
         
         // Actualizar la última posición
