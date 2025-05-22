@@ -171,6 +171,24 @@ function prepararPalabras() {
   console.log("Palabras disponibles:", palabrasDisponibles);
 }
 
+// NUEVA FUNCIÓN - Verificar si el canvas está escalado
+function verificarCanvas() {
+  let canvas = document.querySelector('canvas');
+  if (canvas) {
+    let rect = canvas.getBoundingClientRect();
+    console.log("Canvas info:", {
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+      displayWidth: rect.width,
+      displayHeight: rect.height,
+      scaleX: canvas.width / rect.width,
+      scaleY: canvas.height / rect.height,
+      offsetLeft: rect.left,
+      offsetTop: rect.top
+    });
+  }
+}
+
 function draw() {
   if (estadoActual === "INICIO") {
     dibujarPantallaInicio();
@@ -621,7 +639,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN SIMPLIFICADA - Para debug visual temporal
+// FUNCIÓN COMPLETAMENTE NUEVA - Sin círculos verdes, con enfoque directo
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -633,10 +651,7 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // DEBUG TEMPORAL: Dibujar un pequeño círculo verde para ver dónde se dibuja
-  fill(0, 255, 0, 150); // Verde semi-transparente
-  noStroke();
-  ellipse(x, y, 8, 8);
+  // SIN CÍRCULOS DEBUG
   
   // Configuración para dibujar texto
   textSize(tamanoTexto);
@@ -648,17 +663,13 @@ function dibujarPalabra(x, y) {
   text(palabra, x, y);
   
   // Dibujar en el lienzo secundario
-  lienzo.fill(0, 255, 0, 150); // Verde para debug en lienzo
-  lienzo.noStroke();
-  lienzo.ellipse(x, y, 8, 8);
-  
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
   lienzo.textAlign(CENTER, CENTER);
   lienzo.text(palabra, x, y);
   
-  console.log("Palabra dibujada:", palabra, "en coordenadas exactas:", x, y);
+  console.log("Palabra dibujada:", palabra, "en coordenadas:", x, y);
 }
 
 function guardarCreacion() {
@@ -668,38 +679,29 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN CORREGIDA - Definir correctamente el área dibujable
+// FUNCIÓN SIMPLIFICADA - Área dibujable más amplia
 function estaEnAreaDibujable(x, y) {
-  let minX, maxX, minY, maxY;
+  let minX = mostrarControles ? 280 : 70;
+  let maxX = width - 20;
+  let minY = 20;
+  let maxY = height - 20;
   
-  if (mostrarControles) {
-    // Si el panel está visible: el área dibujable empieza donde termina el panel
-    minX = 270; // Justo después del panel (que termina en x=260)
-    maxX = 1200; // Todo el ancho del canvas
-    minY = 0; // Desde la parte superior
-    maxY = 800; // Hasta la parte inferior
-  } else {
-    // Si el panel está oculto: casi todo el canvas es dibujable
-    minX = 60; // Pequeño margen desde la izquierda
-    maxX = 1200; // Todo el ancho del canvas
-    minY = 0; // Desde la parte superior
-    maxY = 800; // Hasta la parte inferior
-  }
+  let resultado = (x > minX && x < maxX && y > minY && y < maxY);
   
-  console.log("Verificando área dibujable:", {
-    x: x, 
-    y: y, 
-    minX: minX, 
-    maxX: maxX, 
-    minY: minY, 
+  console.log("Área dibujable check:", {
+    x: x,
+    y: y,
+    minX: minX,
+    maxX: maxX,
+    minY: minY,
     maxY: maxY,
-    esDibujable: (x > minX && x < maxX && y > minY && y < maxY)
+    resultado: resultado
   });
   
-  return (x > minX && x < maxX && y > minY && y < maxY);
+  return resultado;
 }
 
-// FUNCIÓN MOUSEPRESSED MODIFICADA - Con logs detallados
+// FUNCIÓN MOUSEPRESSED ULTRA SIMPLIFICADA - Forzar funcionamiento
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -716,7 +718,6 @@ function mousePressed() {
     console.log("Cambiando a pantalla ADVERTENCIA");
   } 
   else if (estadoActual === "ADVERTENCIA") {
-    // Verificar clic en botón Bienvenido
     let botonX = centroX - 100;
     let botonY = 620;
     let botonAncho = 200;
@@ -729,12 +730,10 @@ function mousePressed() {
     }
   }
   else if (estadoActual === "PREGUNTA" && !cargando) {
-    // Calcular la posición del botón/campo de respuesta
     let altoImagen = 400;
     let imagenYInferior = centroY + altoImagen/2;
     let respuestaY = imagenYInferior + 40;
     
-    // Verificar clic en área de respuesta o botón continuar
     let botonX = centroX - 200;
     let botonY = respuestaY;
     let botonAncho = 400;
@@ -747,9 +746,10 @@ function mousePressed() {
         estadoActual = "RESULTADOS";
         console.log("Cambiando a pantalla RESULTADOS");
         prepararPalabras();
-        
-        // Inicializar el lienzo con un fondo blanco
         lienzo.background(255);
+        
+        // NUEVA: Verificar canvas al entrar a RESULTADOS
+        verificarCanvas();
       } else {
         inputActivo = true;
       }
@@ -757,36 +757,32 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - CON LOGS DETALLADOS
+  // Estado RESULTADOS - FORZAR FUNCIONAMIENTO
   else if (estadoActual === "RESULTADOS") {
-    console.log("=== CLIC EN RESULTADOS ===");
+    console.log("=== MOUSE PRESS EN RESULTADOS ===");
     console.log("mouseX:", mouseX, "mouseY:", mouseY);
-    console.log("Panel visible:", mostrarControles);
+    console.log("width:", width, "height:", height);
     
-    // Verificar si se hace clic en el panel oculto para mostrarlo
+    // Verificar canvas cada vez
+    verificarCanvas();
+    
+    // Verificar panel oculto
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
       mostrarControles = true;
-      console.log("Mostrando panel");
       return;
     }
     
-    // Verificar si está en el área dibujable
-    if (estaEnAreaDibujable(mouseX, mouseY)) {
-      console.log("*** INICIANDO DIBUJO ***");
+    // NUEVA ESTRATEGIA: Si está a la derecha del panel, SIEMPRE dibujar
+    if (mouseX > 280) {
+      console.log("*** FORZANDO DIBUJO A LA DERECHA DEL PANEL ***");
       dibujando = true;
-      
-      // Guardar posición directa
       ultimaPosicion = createVector(mouseX, mouseY);
-      
-      // Dibujar usando las coordenadas DIRECTAS de p5.js
       dibujarPalabra(mouseX, mouseY);
       return;
-    } else {
-      console.log("Clic fuera del área dibujable");
     }
     
-    // Interacciones con el panel (sin cambios)
-    if (mostrarControles) {
+    // Interacciones con el panel (sin cambios pero simplificadas)
+    if (mostrarControles && mouseX < 270) {
       let baseY = 310;
       let espaciado = 45;
       
@@ -802,7 +798,6 @@ function mousePressed() {
         tamanoTexto = max(10, tamanoTexto - 2);
         return;
       }
-      
       if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
         tamanoTexto = min(72, tamanoTexto + 2);
         return;
@@ -814,33 +809,30 @@ function mousePressed() {
         distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5);
         return;
       }
-      
       if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
         distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5);
         return;
       }
       
-      // Selector de color
+      // Colores
       baseY += espaciado;
       if (mouseY >= baseY-12 && mouseY <= baseY+12) {
         if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0);
         if (mouseX >= 130 && mouseX <= 155) colorTexto = color(255, 0, 0);
         if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);
       }
-      
       if (mouseY >= baseY+18 && mouseY <= baseY+42) {
         if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0, 128, 0);
         if (mouseX >= 130 && mouseX <= 155) colorTexto = color(128, 0, 128);
         if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);
       }
       
-      // Botones de acción
+      // Botones
       let guardarY = 610;
       if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY && mouseY <= guardarY+35) {
         guardarCreacion();
         return;
       }
-      
       if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY+45 && mouseY <= guardarY+70) {
         mostrarControles = false;
         return;
@@ -849,31 +841,22 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED MODIFICADA - Con logs detallados
+// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA - Forzar funcionamiento
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    console.log("=== ARRASTRANDO ===");
+    console.log("=== MOUSE DRAG ===");
     console.log("mouseX:", mouseX, "mouseY:", mouseY);
     
-    // Solo dibujar si estamos en el área dibujable
-    if (estaEnAreaDibujable(mouseX, mouseY)) {
+    // NUEVA ESTRATEGIA: Si está a la derecha del panel, SIEMPRE dibujar
+    if (mouseX > 280) {
       let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
-      console.log("Distancia:", distancia, "Mínima requerida:", distanciaEntrePalabras);
-      
-      // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        console.log("*** DIBUJANDO AL ARRASTRAR ***");
-        
-        // Dibujar exactamente donde está mouseX, mouseY
+        console.log("*** FORZANDO DIBUJO AL ARRASTRAR ***");
         dibujarPalabra(mouseX, mouseY);
-        
-        // Actualizar la última posición
         ultimaPosicion = posActual.copy();
       }
-    } else {
-      console.log("Arrastre fuera del área dibujable");
     }
   }
 }
@@ -884,9 +867,9 @@ function mouseReleased() {
   }
 }
 
-// FUNCIÓN KEYPRESSED SIMPLIFICADA - Eliminar las funciones de debug y offset
+// NUEVA FUNCIÓN - Para debug con tecla D
 function keyPressed() {
-  // Capturar texto en la pantalla PREGUNTA
+  // Capturar texto en pantalla PREGUNTA (sin cambios)
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
     if (keyCode === ENTER || keyCode === RETURN) {
       guardarRespuestaYAvanzar();
@@ -898,20 +881,32 @@ function keyPressed() {
     } 
     else if (keyCode === 32 || (keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122) || 
             (keyCode >= 48 && keyCode <= 57) || keyCode === 192 || keyCode === 189) {
-      if (inputValor.length < 20) { // Limitar longitud
+      if (inputValor.length < 20) {
         inputValor += key;
       }
     }
   }
-  // Guardar en la pantalla RESULTADOS
+  // Guardar en pantalla RESULTADOS
   else if (estadoActual === "RESULTADOS" && (key === 's' || key === 'S')) {
     guardarCreacion();
   }
   
-  // FUNCIÓN DE DEBUG SIMPLIFICADA - Solo para testing si es necesario
+  // DEBUG: Información detallada con tecla D
   if (key === 'd' || key === 'D') {
-    console.log("Posición actual del mouse:", mouseX, mouseY);
-    console.log("Área dibujable:", estaEnAreaDibujable(mouseX, mouseY));
+    console.log("=== DEBUG INFO ===");
+    console.log("Estado actual:", estadoActual);
+    console.log("Mouse posición:", mouseX, mouseY);
+    console.log("Canvas size:", width, height);
+    console.log("Panel visible:", mostrarControles);
+    verificarCanvas();
+    
+    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA
+    if (estadoActual === "RESULTADOS") {
+      console.log("*** FORZANDO DIBUJO EN EL CENTRO PARA PRUEBA ***");
+      let centroTestX = 600; // Centro del área de dibujo
+      let centroTestY = 400; // Centro vertical
+      dibujarPalabra(centroTestX, centroTestY);
+    }
   }
 }
 
