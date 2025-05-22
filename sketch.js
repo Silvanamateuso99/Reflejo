@@ -701,7 +701,7 @@ function estaEnAreaDibujable(x, y) {
   return resultado;
 }
 
-// FUNCIÓN MOUSEPRESSED SIMPLIFICADA - Usar coordenadas directas
+// FUNCIÓN MOUSEPRESSED CORREGIDA - Limitar coordenadas al canvas
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -755,30 +755,35 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - USAR COORDENADAS DIRECTAS
+  // Estado RESULTADOS - LIMITAR COORDENADAS AL CANVAS
   else if (estadoActual === "RESULTADOS") {
-    console.log("=== MOUSE PRESS EN RESULTADOS (DIRECTO) ===");
-    console.log("mouseX:", mouseX, "mouseY:", mouseY);
-    console.log("width:", width, "height:", height);
+    // LIMITAR las coordenadas del mouse al tamaño del canvas
+    let mouseXLimitado = constrain(mouseX, 0, width - 1);
+    let mouseYLimitado = constrain(mouseY, 0, height - 1);
+    
+    console.log("=== MOUSE PRESS EN RESULTADOS (LIMITADO) ===");
+    console.log("Mouse original:", mouseX, mouseY);
+    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
+    console.log("Canvas límites: width =", width, "height =", height);
     
     verificarCanvas();
     
-    // Verificar panel oculto
+    // Verificar panel oculto (usar coordenadas originales para UI)
     if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
       mostrarControles = true;
       return;
     }
     
-    // USAR COORDENADAS DIRECTAS DEL MOUSE - SIN CORRECCIÓN
-    if (mouseX > 280) {
-      console.log("*** DIBUJANDO CON COORDENADAS DIRECTAS DEL MOUSE ***");
+    // USAR COORDENADAS LIMITADAS PARA DIBUJO
+    if (mouseXLimitado > 280) {
+      console.log("*** DIBUJANDO CON COORDENADAS LIMITADAS ***");
       dibujando = true;
-      ultimaPosicion = createVector(mouseX, mouseY);
-      dibujarPalabra(mouseX, mouseY);
+      ultimaPosicion = createVector(mouseXLimitado, mouseYLimitado);
+      dibujarPalabra(mouseXLimitado, mouseYLimitado);
       return;
     }
     
-    // Interacciones con el panel
+    // Interacciones con el panel (usar coordenadas originales)
     if (mostrarControles && mouseX < 270) {
       let baseY = 310;
       let espaciado = 45;
@@ -838,20 +843,25 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA - Usar coordenadas directas
+// FUNCIÓN MOUSEDRAGGED CORREGIDA - Limitar coordenadas
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    console.log("=== MOUSE DRAG (DIRECTO) ===");
-    console.log("mouseX:", mouseX, "mouseY:", mouseY);
+    // LIMITAR las coordenadas del mouse al tamaño del canvas
+    let mouseXLimitado = constrain(mouseX, 0, width - 1);
+    let mouseYLimitado = constrain(mouseY, 0, height - 1);
     
-    // USAR COORDENADAS DIRECTAS DEL MOUSE - SIN CORRECCIÓN
-    if (mouseX > 280) {
-      let posActual = createVector(mouseX, mouseY);
+    console.log("=== MOUSE DRAG (LIMITADO) ===");
+    console.log("Mouse original:", mouseX, mouseY);
+    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
+    
+    // USAR COORDENADAS LIMITADAS
+    if (mouseXLimitado > 280) {
+      let posActual = createVector(mouseXLimitado, mouseYLimitado);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       if (distancia >= distanciaEntrePalabras) {
-        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS DIRECTAS ***");
-        dibujarPalabra(mouseX, mouseY);
+        console.log("*** DIBUJANDO AL ARRASTRAR CON COORDENADAS LIMITADAS ***");
+        dibujarPalabra(mouseXLimitado, mouseYLimitado);
         ultimaPosicion = posActual.copy();
       }
     }
@@ -864,7 +874,7 @@ function mouseReleased() {
   }
 }
 
-// FUNCIÓN KEYPRESSED SIMPLIFICADA - Debug directo
+// FUNCIÓN KEYPRESSED CORREGIDA - Debug con coordenadas limitadas
 function keyPressed() {
   // Capturar texto en pantalla PREGUNTA (sin cambios)
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
@@ -888,20 +898,25 @@ function keyPressed() {
     guardarCreacion();
   }
   
-  // DEBUG SIMPLE: Información con tecla D
+  // DEBUG LIMITADO: Información con tecla D
   if (key === 'd' || key === 'D') {
-    console.log("=== DEBUG INFO SIMPLE ===");
+    console.log("=== DEBUG INFO LIMITADO ===");
     console.log("Estado actual:", estadoActual);
-    console.log("Mouse posición DIRECTA:", mouseX, mouseY);
+    
+    let mouseXLimitado = constrain(mouseX, 0, width - 1);
+    let mouseYLimitado = constrain(mouseY, 0, height - 1);
+    
+    console.log("Mouse original:", mouseX, mouseY);
+    console.log("Mouse limitado:", mouseXLimitado, mouseYLimitado);
     console.log("Canvas size:", width, height);
     console.log("Panel visible:", mostrarControles);
     verificarCanvas();
     
-    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA - COORDENADAS DIRECTAS
+    // FORZAR DIBUJO EN EL CENTRO PARA PRUEBA - COORDENADAS SEGURAS
     if (estadoActual === "RESULTADOS") {
-      console.log("*** FORZANDO DIBUJO EN EL CENTRO CON COORDENADAS DIRECTAS ***");
-      let centroTestX = 600;
-      let centroTestY = 400;
+      console.log("*** FORZANDO DIBUJO EN EL CENTRO CON COORDENADAS SEGURAS ***");
+      let centroTestX = 600; // Centro del área de dibujo
+      let centroTestY = 400; // Centro vertical
       dibujarPalabra(centroTestX, centroTestY);
     }
   }
