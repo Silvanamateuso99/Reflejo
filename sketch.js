@@ -400,7 +400,6 @@ function dibujarPantallaPregunta() {
   }
 }
 
-// FUNCIÓN MODIFICADA para pantalla de resultados - limpiar lienzo al iniciar
 function dibujarPantallaResultados() {
   background(255);
   
@@ -617,7 +616,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN REVISADA para asegurar que el dibujo aparezca en el área visible
+// FUNCIÓN COMPLETAMENTE REESCRITA para dibujar exactamente en el centro del canvas
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -629,30 +628,35 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  console.log("Dibujando palabra:", palabra, "en", x, y); // Debug info
+  // Ajustar coordenadas para centrar en el canvas visible
+  // El panel tiene 270px de ancho cuando está visible
+  let anchoDisponible = mostrarControles ? width - 270 : width - 50;
+  let xCentrado = mostrarControles ? 270 + (anchoDisponible / 2) : 50 + (anchoDisponible / 2);
   
-  // IMPORTANTE: Verificar que estamos en el área visible (esta es la clave)
-  // y ajustar coordenadas si es necesario
-  let yVisible = y;
-  if (yVisible < 100) { // Si está por encima del área visible
-    yVisible = 100 + Math.random() * 100; // Mover hacia área visible
-  }
+  // Ahora veamos dónde está haciendo clic el usuario respecto al centro
+  let offsetX = x - xCentrado;
   
-  // Configuración para dibujar texto centrado en la posición del mouse
+  // Usamos las coordenadas del ratón, pero ajustamos Y para estar en el centro vertical
+  let xFinal = xCentrado + offsetX * 0.8; // Reducimos un poco el offset para centrarlo mejor
+  let yFinal = Math.max(200, y); // Aseguramos que esté al menos a 200px del borde superior
+  
+  console.log("Dibujando palabra:", palabra, "en", xFinal, yFinal); // Debug info
+  
+  // Configuración para dibujar texto centrado
   textAlign(CENTER, CENTER);
   textSize(tamanoTexto);
   textFont(fuentes[fuenteSeleccionada]);
   fill(colorTexto);
   
-  // Dibujar directamente en el canvas principal (pantalla)
-  text(palabra, x, yVisible);
+  // Dibujar directamente en el canvas principal
+  text(palabra, xFinal, yFinal);
   
   // Configurar y dibujar en el lienzo secundario para guardar
   lienzo.textAlign(CENTER, CENTER);
   lienzo.textSize(tamanoTexto);
   lienzo.textFont(fuentes[fuenteSeleccionada]);
   lienzo.fill(colorTexto);
-  lienzo.text(palabra, x, yVisible);
+  lienzo.text(palabra, xFinal, yFinal);
 }
 
 function guardarCreacion() {
@@ -662,7 +666,7 @@ function guardarCreacion() {
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN ACTUALIZADA para iniciar el dibujo en una posición visible
+// FUNCIÓN MODIFICADA para iniciar el dibujo
 function mousePressed() {
   // Parte no modificada para audio y estados anteriores
   if (!musicaIniciada) {
@@ -710,8 +714,7 @@ function mousePressed() {
         console.log("Cambiando a pantalla RESULTADOS");
         prepararPalabras();
         
-        // IMPORTANTE: Inicializar el lienzo con un fondo blanco
-        // para asegurar que empezamos con un lienzo limpio
+        // Inicializar el lienzo con un fondo blanco
         lienzo.background(255);
       } else {
         inputActivo = true;
@@ -733,16 +736,10 @@ function mousePressed() {
       dibujando = true;
       
       // Guardar posición exacta del clic para dibujar
-      // Asegurar que la coordenada Y esté en el área visible
-      let yVisible = mouseY;
-      if (yVisible < 100) {
-        yVisible = 100 + Math.random() * 100; // Mover hacia área visible
-      }
+      ultimaPosicion = createVector(mouseX, mouseY);
       
-      ultimaPosicion = createVector(mouseX, yVisible);
-      
-      // Dibujar la primera palabra en la posición visible
-      dibujarPalabra(mouseX, yVisible);
+      // Dibujar la primera palabra - la función dibujarPalabra ajustará las coordenadas
+      dibujarPalabra(mouseX, mouseY);
       return;
     }
     
@@ -822,20 +819,14 @@ function mouseDragged() {
     let zonaValida = mostrarControles ? mouseX > 270 : mouseX > 50;
     
     if (zonaValida) {
-      // Ajustar coordenada Y si está fuera del área visible
-      let yVisible = mouseY;
-      if (yVisible < 100) {
-        yVisible = 100 + Math.random() * 100; // Mover hacia área visible
-      }
-      
-      // Calcular la distancia desde la última posición
-      let posActual = createVector(mouseX, yVisible);
+      // Aquí no ajustamos las coordenadas Y, porque dibujarPalabra lo hará
+      let posActual = createVector(mouseX, mouseY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       // Solo agregar una palabra si hemos recorrido la distancia mínima
       if (distancia >= distanciaEntrePalabras) {
-        // Dibujar la palabra en la posición visible
-        dibujarPalabra(mouseX, yVisible);
+        // Pasar las coordenadas directamente, la función dibujarPalabra se encargará de ajustarlas
+        dibujarPalabra(mouseX, mouseY);
         
         // Actualizar la última posición
         ultimaPosicion = posActual.copy();
