@@ -639,7 +639,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN COMPLETAMENTE NUEVA - Sin círculos verdes, con enfoque directo
+// FUNCIÓN DIBUJARPALABRA COMPLETAMENTE CORREGIDA
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -651,25 +651,42 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // SIN CÍRCULOS DEBUG
+  // *** RESETEAR COMPLETAMENTE TODAS LAS CONFIGURACIONES DE TEXTO ***
+  push(); // Guardar estado actual
   
-  // Configuración para dibujar texto
-  textSize(tamanoTexto);
+  // CONFIGURACIÓN LIMPIA PARA EL CANVAS PRINCIPAL
   textFont(fuentes[fuenteSeleccionada]);
+  textSize(tamanoTexto);
   fill(colorTexto);
   textAlign(CENTER, CENTER);
+  noStroke(); // Asegurar que no hay stroke
   
   // Dibujar en el canvas principal
   text(palabra, x, y);
   
-  // Dibujar en el lienzo secundario
-  lienzo.textSize(tamanoTexto);
+  pop(); // Restaurar estado
+  
+  // *** RESETEAR COMPLETAMENTE TODAS LAS CONFIGURACIONES PARA EL LIENZO ***
+  lienzo.push(); // Guardar estado del lienzo
+  
+  // CONFIGURACIÓN LIMPIA PARA EL LIENZO SECUNDARIO
   lienzo.textFont(fuentes[fuenteSeleccionada]);
+  lienzo.textSize(tamanoTexto);
   lienzo.fill(colorTexto);
   lienzo.textAlign(CENTER, CENTER);
+  lienzo.noStroke(); // Asegurar que no hay stroke
+  
+  // Dibujar en el lienzo secundario
   lienzo.text(palabra, x, y);
   
-  console.log("Palabra dibujada:", palabra, "en coordenadas:", x, y);
+  lienzo.pop(); // Restaurar estado del lienzo
+  
+  console.log("*** PALABRA DIBUJADA CON CONFIGURACIÓN LIMPIA ***");
+  console.log("Palabra:", palabra);
+  console.log("Coordenadas:", x, y);
+  console.log("Fuente:", fuentes[fuenteSeleccionada]);
+  console.log("Tamaño:", tamanoTexto);
+  console.log("Color:", colorTexto);
 }
 
 function guardarCreacion() {
