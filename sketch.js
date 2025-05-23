@@ -718,7 +718,7 @@ function estaEnAreaDibujable(x, y) {
   return resultado;
 }
 
-// FUNCIÓN MOUSEPRESSED SIMPLIFICADA - Usar mouseX y mouseY directamente
+// FUNCIÓN MOUSEPRESSED CORREGIDA - Usar winMouseX y winMouseY
 function mousePressed() {
   // Audio y estados anteriores (sin cambios)
   if (!musicaIniciada) {
@@ -740,6 +740,7 @@ function mousePressed() {
     let botonAncho = 200;
     let botonAlto = 60;
     
+    // Para UI usar mouseX normal
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
       estadoActual = "PREGUNTA";
@@ -756,6 +757,7 @@ function mousePressed() {
     let botonAncho = 400;
     let botonAlto = 50;
     
+    // Para UI usar mouseX normal
     if (mouseX > botonX && mouseX < botonX + botonAncho && 
         mouseY > botonY && mouseY < botonY + botonAlto) {
       
@@ -771,79 +773,87 @@ function mousePressed() {
       inputActivo = false;
     }
   }
-  // Estado RESULTADOS - USAR DIRECTAMENTE mouseX y mouseY
+  // Estado RESULTADOS - USAR winMouseX y winMouseY para dibujo
   else if (estadoActual === "RESULTADOS") {
-    console.log("=== MOUSE PRESS DIRECTO ===");
-    console.log("Mouse directo:", mouseX, mouseY);
+    // CALCULAR coordenadas relativas al canvas
+    let canvasElement = document.querySelector('canvas');
+    let rect = canvasElement.getBoundingClientRect();
+    let canvasX = winMouseX - rect.left;
+    let canvasY = winMouseY - rect.top;
     
-    // Verificar panel oculto
-    if (!mostrarControles && mouseX <= 50 && mouseY >= 100 && mouseY <= 180) {
+    console.log("=== COORDENADAS CANVAS CORRECTAS ===");
+    console.log("winMouse:", winMouseX, winMouseY);
+    console.log("canvas rect:", rect.left, rect.top);
+    console.log("canvas coords:", canvasX, canvasY);
+    
+    // Verificar panel oculto - usar coordenadas del canvas
+    if (!mostrarControles && canvasX <= 50 && canvasY >= 100 && canvasY <= 180) {
       mostrarControles = true;
       return;
     }
     
-    // DIBUJO DIRECTO - Sin correcciones
-    if (mouseX > 280) {
-      console.log("*** DIBUJANDO DIRECTO ***");
+    // DIBUJO - usar coordenadas del canvas
+    if (canvasX > 280 && canvasX < width && canvasY > 0 && canvasY < height) {
+      console.log("*** DIBUJANDO CON COORDENADAS CANVAS ***");
       dibujando = true;
-      ultimaPosicion = createVector(mouseX, mouseY);
-      dibujarPalabra(mouseX, mouseY);
+      ultimaPosicion = createVector(canvasX, canvasY);
+      dibujarPalabra(canvasX, canvasY);
       return;
     }
     
-    // Interacciones con el panel
-    if (mostrarControles && mouseX < 270) {
+    // Interacciones con el panel - usar coordenadas del canvas
+    if (mostrarControles && canvasX < 270) {
       let baseY = 310;
       let espaciado = 45;
       
       // Selector de fuente
-      if (mouseX >= 90 && mouseX <= 240 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (canvasX >= 90 && canvasX <= 240 && canvasY >= baseY-12 && canvasY <= baseY+12) {
         fuenteSeleccionada = (fuenteSeleccionada + 1) % fuentes.length;
         return;
       }
       
       // Botones de tamaño
       baseY += espaciado;
-      if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (canvasX >= 90 && canvasX <= 115 && canvasY >= baseY-12 && canvasY <= baseY+12) {
         tamanoTexto = max(10, tamanoTexto - 2);
         return;
       }
-      if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (canvasX >= 125 && canvasX <= 150 && canvasY >= baseY-12 && canvasY <= baseY+12) {
         tamanoTexto = min(72, tamanoTexto + 2);
         return;
       }
       
       // Botones de densidad
       baseY += espaciado;
-      if (mouseX >= 90 && mouseX <= 115 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (canvasX >= 90 && canvasX <= 115 && canvasY >= baseY-12 && canvasY <= baseY+12) {
         distanciaEntrePalabras = min(50, distanciaEntrePalabras + 5);
         return;
       }
-      if (mouseX >= 125 && mouseX <= 150 && mouseY >= baseY-12 && mouseY <= baseY+12) {
+      if (canvasX >= 125 && canvasX <= 150 && canvasY >= baseY-12 && canvasY <= baseY+12) {
         distanciaEntrePalabras = max(10, distanciaEntrePalabras - 5);
         return;
       }
       
       // Colores
       baseY += espaciado;
-      if (mouseY >= baseY-12 && mouseY <= baseY+12) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0);
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(255, 0, 0);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(0, 0, 255);
+      if (canvasY >= baseY-12 && canvasY <= baseY+12) {
+        if (canvasX >= 90 && canvasX <= 115) colorTexto = color(0);
+        if (canvasX >= 130 && canvasX <= 155) colorTexto = color(255, 0, 0);
+        if (canvasX >= 170 && canvasX <= 195) colorTexto = color(0, 0, 255);
       }
-      if (mouseY >= baseY+18 && mouseY <= baseY+42) {
-        if (mouseX >= 90 && mouseX <= 115) colorTexto = color(0, 128, 0);
-        if (mouseX >= 130 && mouseX <= 155) colorTexto = color(128, 0, 128);
-        if (mouseX >= 170 && mouseX <= 195) colorTexto = color(255, 165, 0);
+      if (canvasY >= baseY+18 && canvasY <= baseY+42) {
+        if (canvasX >= 90 && canvasX <= 115) colorTexto = color(0, 128, 0);
+        if (canvasX >= 130 && canvasX <= 155) colorTexto = color(128, 0, 128);
+        if (canvasX >= 170 && canvasX <= 195) colorTexto = color(255, 165, 0);
       }
       
       // Botones
       let guardarY = 610;
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY && mouseY <= guardarY+35) {
+      if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY && canvasY <= guardarY+35) {
         guardarCreacion();
         return;
       }
-      if (mouseX >= 20 && mouseX <= 250 && mouseY >= guardarY+45 && mouseY <= guardarY+70) {
+      if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY+45 && canvasY <= guardarY+70) {
         mostrarControles = false;
         return;
       }
@@ -851,20 +861,26 @@ function mousePressed() {
   }
 }
 
-// FUNCIÓN MOUSEDRAGGED SIMPLIFICADA - Usar mouseX y mouseY directamente
+// FUNCIÓN MOUSEDRAGGED CORREGIDA - Usar winMouseX y winMouseY
 function mouseDragged() {
   if (estadoActual === "RESULTADOS" && dibujando) {
-    console.log("=== MOUSE DRAG DIRECTO ===");
-    console.log("Mouse directo:", mouseX, mouseY);
+    // CALCULAR coordenadas relativas al canvas
+    let canvasElement = document.querySelector('canvas');
+    let rect = canvasElement.getBoundingClientRect();
+    let canvasX = winMouseX - rect.left;
+    let canvasY = winMouseY - rect.top;
     
-    // USAR DIRECTAMENTE mouseX y mouseY
-    if (mouseX > 280) {
-      let posActual = createVector(mouseX, mouseY);
+    console.log("=== DRAG CANVAS COORDS ===");
+    console.log("canvas coords:", canvasX, canvasY);
+    
+    // USAR coordenadas del canvas
+    if (canvasX > 280 && canvasX < width && canvasY > 0 && canvasY < height) {
+      let posActual = createVector(canvasX, canvasY);
       let distancia = p5.Vector.dist(ultimaPosicion, posActual);
       
       if (distancia >= distanciaEntrePalabras) {
-        console.log("*** DIBUJANDO AL ARRASTRAR DIRECTO ***");
-        dibujarPalabra(mouseX, mouseY);
+        console.log("*** DIBUJANDO AL ARRASTRAR CON CANVAS COORDS ***");
+        dibujarPalabra(canvasX, canvasY);
         ultimaPosicion = posActual.copy();
       }
     }
@@ -877,7 +893,7 @@ function mouseReleased() {
   }
 }
 
-// FUNCIÓN KEYPRESSED SIMPLIFICADA - Debug directo
+// FUNCIÓN KEYPRESSED CORREGIDA - Debug con coordenadas canvas
 function keyPressed() {
   // Capturar texto en pantalla PREGUNTA (sin cambios)
   if (estadoActual === "PREGUNTA" && inputActivo && !todoPreguntado && !cargando) {
@@ -901,18 +917,25 @@ function keyPressed() {
     guardarCreacion();
   }
   
-  // DEBUG DIRECTO: Información con tecla D
+  // DEBUG CANVAS: Información con tecla D
   if (key === 'd' || key === 'D') {
-    console.log("=== DEBUG DIRECTO ===");
+    console.log("=== DEBUG CANVAS COORDS ===");
     console.log("Estado actual:", estadoActual);
-    console.log("Mouse directo:", mouseX, mouseY);
+    
+    let canvasElement = document.querySelector('canvas');
+    let rect = canvasElement.getBoundingClientRect();
+    let canvasX = winMouseX - rect.left;
+    let canvasY = winMouseY - rect.top;
+    
+    console.log("winMouse:", winMouseX, winMouseY);
+    console.log("canvas coords:", canvasX, canvasY);
     console.log("Canvas size:", width, height);
     console.log("Panel visible:", mostrarControles);
     
-    // FORZAR DIBUJO DIRECTO PARA PRUEBA
+    // FORZAR DIBUJO CON COORDENADAS CANVAS
     if (estadoActual === "RESULTADOS") {
-      console.log("*** FORZANDO DIBUJO DIRECTO ***");
-      dibujarPalabra(mouseX, mouseY); // Usar posición actual del mouse
+      console.log("*** FORZANDO DIBUJO CON CANVAS COORDS ***");
+      dibujarPalabra(canvasX, canvasY);
     }
   }
 }
