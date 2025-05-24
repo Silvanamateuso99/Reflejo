@@ -34,7 +34,8 @@ let palabraActual = 0;
 let distanciaEntrePalabras = 30; // Controla qué tan juntas aparecen las palabras
 let ultimaPosicion;
 let dibujando = false;
-let lienzo; // Canvas para dibujar y guardar
+// Nueva variable para almacenar palabras dibujadas
+let palabrasDibujadas = [];
 
 // Opciones de personalización
 let fuentes = ["Verdana", "Georgia", "Times New Roman", "Arial", "Courier New"];
@@ -136,10 +137,7 @@ function setup() {
   // Inicializar variables para la pantalla de resultados
   colorTexto = color(0); // Negro por defecto
   ultimaPosicion = createVector(0, 0);
-  
-  // Crear lienzo para dibujo
-  lienzo = createGraphics(width, height);
-  lienzo.background(255);
+  palabrasDibujadas = []; // Inicializar arreglo de palabras dibujadas
   
   // Palabras de prueba si no tenemos ninguna
   if (palabrasUsuario.every(p => p === "")) {
@@ -423,11 +421,22 @@ function dibujarPantallaPregunta() {
   }
 }
 
+// ACTUALIZAR FUNCIÓN DIBUJAR PANTALLA RESULTADOS
 function dibujarPantallaResultados() {
+  // Limpiar pantalla
   background(255);
   
-  // Mostrar el lienzo con las palabras dibujadas
-  image(lienzo, 0, 0);
+  // DIBUJAR TODAS LAS PALABRAS GUARDADAS
+  for (let p of palabrasDibujadas) {
+    push();
+    textFont(p.fuente);
+    textSize(p.tamano);
+    fill(p.color);
+    textAlign(CENTER, CENTER);
+    noStroke();
+    text(p.texto, p.x, p.y);
+    pop();
+  }
   
   // Panel lateral si está visible
   if (mostrarControles) {
@@ -639,7 +648,7 @@ function mostrarMensajeGuardado() {
   text("¡Creación guardada!", width/2, height/2);
 }
 
-// FUNCIÓN DIBUJARPALABRA COMPLETAMENTE CORREGIDA
+// FUNCIÓN DIBUJARPALABRA REIMPLEMENTADA
 function dibujarPalabra(x, y) {
   // Verificar que tengamos palabras disponibles
   if (palabrasDisponibles.length === 0) {
@@ -651,37 +660,30 @@ function dibujarPalabra(x, y) {
   palabraActual = (palabraActual + 1) % palabrasDisponibles.length;
   let palabra = palabrasDisponibles[palabraActual];
   
-  // *** RESETEAR COMPLETAMENTE TODAS LAS CONFIGURACIONES DE TEXTO ***
-  push(); // Guardar estado actual
+  // GUARDAR PALABRA Y COORDENADAS EN UN ARREGLO
+  palabrasDibujadas.push({
+    texto: palabra,
+    x: x,
+    y: y,
+    fuente: fuentes[fuenteSeleccionada],
+    tamano: tamanoTexto,
+    color: colorTexto
+  });
   
-  // CONFIGURACIÓN LIMPIA PARA EL CANVAS PRINCIPAL
+  // DIBUJAR EN CANVAS PRINCIPAL
+  push(); // Guardar estado
   textFont(fuentes[fuenteSeleccionada]);
   textSize(tamanoTexto);
   fill(colorTexto);
   textAlign(CENTER, CENTER);
-  noStroke(); // Asegurar que no hay stroke
+  noStroke();
   
-  // Dibujar en el canvas principal
+  // Dibujar palabra
   text(palabra, x, y);
   
   pop(); // Restaurar estado
   
-  // *** RESETEAR COMPLETAMENTE TODAS LAS CONFIGURACIONES PARA EL LIENZO ***
-  lienzo.push(); // Guardar estado del lienzo
-  
-  // CONFIGURACIÓN LIMPIA PARA EL LIENZO SECUNDARIO
-  lienzo.textFont(fuentes[fuenteSeleccionada]);
-  lienzo.textSize(tamanoTexto);
-  lienzo.fill(colorTexto);
-  lienzo.textAlign(CENTER, CENTER);
-  lienzo.noStroke(); // Asegurar que no hay stroke
-  
-  // Dibujar en el lienzo secundario
-  lienzo.text(palabra, x, y);
-  
-  lienzo.pop(); // Restaurar estado del lienzo
-  
-  console.log("*** PALABRA DIBUJADA CON CONFIGURACIÓN LIMPIA ***");
+  console.log("*** PALABRA DIBUJADA DIRECTAMENTE ***");
   console.log("Palabra:", palabra);
   console.log("Coordenadas:", x, y);
   console.log("Fuente:", fuentes[fuenteSeleccionada]);
@@ -689,33 +691,19 @@ function dibujarPalabra(x, y) {
   console.log("Color:", colorTexto);
 }
 
+// FUNCIÓN GUARDAR CREACIÓN ACTUALIZADA
 function guardarCreacion() {
-  saveCanvas(lienzo, 'mi_creacion_reflejo', 'png');
+  // Guardar el canvas actual
+  saveCanvas('mi_creacion_reflejo', 'png');
   mensajeSalvado = true;
   tiempoMensaje = 0;
   console.log("Creación guardada como: mi_creacion_reflejo.png");
 }
 
-// FUNCIÓN SIMPLIFICADA - Área dibujable más amplia
-function estaEnAreaDibujable(x, y) {
-  let minX = mostrarControles ? 280 : 70;
-  let maxX = width - 20;
-  let minY = 20;
-  let maxY = height - 20;
-  
-  let resultado = (x > minX && x < maxX && y > minY && y < maxY);
-  
-  console.log("Área dibujable check:", {
-    x: x,
-    y: y,
-    minX: minX,
-    maxX: maxX,
-    minY: minY,
-    maxY: maxY,
-    resultado: resultado
-  });
-  
-  return resultado;
+// FUNCIÓN PARA BORRAR TODO
+function reiniciarLienzo() {
+  palabrasDibujadas = []; // Vaciar el arreglo de palabras
+  console.log("Lienzo reiniciado");
 }
 
 // FUNCIÓN MOUSEPRESSED CORREGIDA - Usar winMouseX y winMouseY
@@ -765,7 +753,7 @@ function mousePressed() {
         estadoActual = "RESULTADOS";
         console.log("Cambiando a pantalla RESULTADOS");
         prepararPalabras();
-        lienzo.background(255);
+        palabrasDibujadas = []; // Reiniciar palabras al cambiar a pantalla de resultados
       } else {
         inputActivo = true;
       }
@@ -938,6 +926,10 @@ function keyPressed() {
       dibujarPalabra(canvasX, canvasY);
     }
   }
+  // BORRAR CANVAS con tecla R
+  else if (estadoActual === "RESULTADOS" && (key === 'r' || key === 'R')) {
+    reiniciarLienzo();
+  }
 }
 
 function guardarRespuestaYAvanzar() {
@@ -959,12 +951,6 @@ function guardarRespuestaYAvanzar() {
       console.log("Todas las preguntas completadas");
     }
   }
-}
-
-// Función para reiniciar el lienzo de dibujo
-function reiniciarLienzo() {
-  lienzo.background(255);
-  console.log("Lienzo reiniciado");
 }
 
 function touchStarted() {
