@@ -451,12 +451,12 @@ function dibujarPantallaResultados() {
   }
 }
 
-// FUNCIÓN COMPLETAMENTE REDISEÑADA - Panel más bajo con mejor espaciado
+// FUNCIÓN COMPLETAMENTE REDISEÑADA - Panel con botón "Reiniciar Dibujo"
 function dibujarPanelLateral() {
   // Panel izquierdo - movido más abajo
   fill(240);
   stroke(200);
-  rect(10, 100, 250, 650, 10); // Posición más baja y altura aumentada
+  rect(10, 100, 250, 690, 10); // Altura aumentada para el nuevo botón
   
   // Título - asegurando que esté visible desde el inicio
   fill(0);
@@ -574,22 +574,30 @@ function dibujarPanelLateral() {
   text("1. Presiona y arrastra para dibujar\n2. Ajusta densidad, estilo y color\n3. Realiza múltiples trazos\n4. Guarda tu creación", 20, baseY + 25, 230, 80);
   
   // Botones - posicionados con mayor espaciado
-  let guardarY = 610; // Posición Y para el botón guardar, asegurando espacio
+  let guardarY = 600; // Posición Y para el primer botón
   
-  // Botón para guardar
-  fill(20);
+  // Botón para reiniciar dibujo (NUEVO)
+  fill(220, 50, 50); // Color rojo suave
   rect(20, guardarY, 230, 35, 5);
   fill(255);
   textSize(14);
   textAlign(CENTER, CENTER);
-  text("Guardar Mi Creación", 135, guardarY + 17);
+  text("Reiniciar Dibujo", 135, guardarY + 17);
+  
+  // Botón para guardar
+  fill(20);
+  rect(20, guardarY + 45, 230, 35, 5);
+  fill(255);
+  textSize(14);
+  textAlign(CENTER, CENTER);
+  text("Guardar Mi Creación", 135, guardarY + 45 + 17);
   
   // Botón para ocultar controles - justo debajo del anterior
   fill(150);
-  rect(20, guardarY + 45, 230, 25, 5);
+  rect(20, guardarY + 90, 230, 25, 5);
   fill(255);
   textAlign(CENTER, CENTER);
-  text("Ocultar Panel", 135, guardarY + 45 + 12);
+  text("Ocultar Panel", 135, guardarY + 90 + 12);
 }
 
 // FUNCIÓN MODIFICADA para el tamaño del color
@@ -835,13 +843,24 @@ function mousePressed() {
         if (canvasX >= 170 && canvasX <= 195) colorTexto = color(255, 165, 0);
       }
       
-      // Botones
-      let guardarY = 610;
+      // Botones - actualizado con el nuevo botón de reiniciar
+      let guardarY = 600;
+      
+      // Botón Reiniciar Dibujo (NUEVO)
       if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY && canvasY <= guardarY+35) {
+        reiniciarLienzo();
+        console.log("Dibujo reiniciado");
+        return;
+      }
+      
+      // Botón Guardar Mi Creación
+      if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY+45 && canvasY <= guardarY+80) {
         guardarCreacion();
         return;
       }
-      if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY+45 && canvasY <= guardarY+70) {
+      
+      // Botón Ocultar Panel
+      if (canvasX >= 20 && canvasX <= 250 && canvasY >= guardarY+90 && canvasY <= guardarY+115) {
         mostrarControles = false;
         return;
       }
@@ -926,9 +945,10 @@ function keyPressed() {
       dibujarPalabra(canvasX, canvasY);
     }
   }
-  // BORRAR CANVAS con tecla R
-  else if (estadoActual === "RESULTADOS" && (key === 'r' || key === 'R')) {
+  // BORRAR CANVAS con tecla R o C (para "Clear")
+  else if (estadoActual === "RESULTADOS" && (key === 'r' || key === 'R' || key === 'c' || key === 'C')) {
     reiniciarLienzo();
+    console.log("Dibujo reiniciado con teclado");
   }
 }
 
